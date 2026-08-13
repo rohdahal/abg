@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Phase 1 of the ABG Hub cloud deployment: migrating the database from an on-premise SQL Server to PostgreSQL on AWS RDS.">
+<meta name="color-scheme" content="light dark">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body, h1, h2, h3, p, dl, dd, ul, ol, figure { margin: 0; }
+  ul, ol { padding: 0; }
+  img, svg { display: block; max-width: 100%; }
+</style>
+<title>ABG Hub Cloud Migration</title>
+<style>
+  /* ── Tokens: light is the base set ─────────────────────────────────────── */
+  :root {
+    --bg: #f5f7f9;
+    --surface: #ffffff;
+    --surface-2: #eceff4;
+    --ink: #141a21;
+    --ink-2: #47525f;
+    --ink-3: #6d7885;
+    --rule: #dbe1e8;
+    --rule-strong: #c3ccd6;
+    --accent: #1f4e79;
+    --accent-soft: #e6eef6;
+    --done: #1f6b52;
+    --done-soft: #e0efe9;
+    --pending: #8a5a12;
+    --pending-soft: #f5ecdc;
+
+    --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Charter, Georgia, serif;
+    --font-body: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+    --measure: 68ch;
+    --wide: 960px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1217;
+      --surface: #151a21;
+      --surface-2: #1c232c;
+      --ink: #e7ecf2;
+      --ink-2: #a6b1be;
+      --ink-3: #7b8593;
+      --rule: #29313b;
+      --rule-strong: #3a444f;
+      --accent: #83b4e2;
+      --accent-soft: #16283a;
+      --done: #6cc7a4;
+      --done-soft: #13291f;
+      --pending: #ddad68;
+      --pending-soft: #2a2113;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0e1217;
+    --surface: #151a21;
+    --surface-2: #1c232c;
+    --ink: #e7ecf2;
+    --ink-2: #a6b1be;
+    --ink-3: #7b8593;
+    --rule: #29313b;
+    --rule-strong: #3a444f;
+    --accent: #83b4e2;
+    --accent-soft: #16283a;
+    --done: #6cc7a4;
+    --done-soft: #13291f;
+    --pending: #ddad68;
+    --pending-soft: #2a2113;
+  }
+
+  /* ── Base ──────────────────────────────────────────────────────────────── */
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16.5px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    padding: 0 24px 96px;
+  }
+
+  .wrap { max-width: var(--wide); margin: 0 auto; }
+  .measure { max-width: var(--measure); }
+
+  p, li { color: var(--ink-2); }
+  strong { color: var(--ink); font-weight: 600; }
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.87em;
+    background: var(--surface-2);
+    color: var(--ink);
+    padding: 0.12em 0.38em;
+    border-radius: 3px;
+  }
+  a { color: var(--accent); }
+  a:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  /* ── Masthead ──────────────────────────────────────────────────────────── */
+  header.masthead {
+    border-bottom: 1px solid var(--rule);
+    padding: 72px 0 40px;
+    margin-bottom: 56px;
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(34px, 5.2vw, 52px);
+    line-height: 1.1;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    color: var(--ink);
+    margin-bottom: 20px;
+  }
+  .lede {
+    font-size: 19px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    max-width: 62ch;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 28px;
+    margin-top: 32px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+  .meta span { display: block; }
+  .meta b {
+    display: block;
+    color: var(--ink);
+    font-weight: 500;
+    margin-top: 3px;
+  }
+
+  /* ── Sections ──────────────────────────────────────────────────────────── */
+  section { margin-bottom: 64px; }
+  h2 {
+    font-family: var(--font-display);
+    font-size: 27px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin-bottom: 8px;
+    text-wrap: balance;
+  }
+  h2 + .sub {
+    color: var(--ink-3);
+    font-size: 14.5px;
+    margin-bottom: 26px;
+  }
+  h2:not(:has(+ .sub)) { margin-bottom: 22px; }
+  h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 30px 0 10px;
+  }
+  section p + p { margin-top: 14px; }
+  ul { margin: 14px 0 0; padding-left: 20px; }
+  li + li { margin-top: 8px; }
+
+  /* ── Status pills ──────────────────────────────────────────────────────── */
+  .status-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 30px;
+  }
+  .pill {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+  }
+  .pill.done { background: var(--done-soft); color: var(--done); border-color: var(--done); }
+  .pill.pending { background: var(--pending-soft); color: var(--pending); border-color: var(--pending); }
+
+  /* ── Spec panel ────────────────────────────────────────────────────────── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 26px 28px;
+  }
+  .specs {
+    display: grid;
+    /* Even column counts at every width, so a label and the detail beside it
+       always share a row rather than splitting across two. */
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 22px 32px;
+    margin: 0;
+  }
+  /* Browsers indent dd by 40px by default, which pushes every value out of
+     alignment with the label above it. */
+  .specs dt, .specs dd { margin: 0; padding: 0; }
+  .spec dt {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 5px;
+  }
+  .spec dd {
+    font-size: 15px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .spec dd small { display: block; color: var(--ink-3); font-size: 12.5px; margin-top: 2px; }
+
+  /* ── Tables ────────────────────────────────────────────────────────────── */
+  .scroll { overflow-x: auto; margin-top: 22px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
+    min-width: 560px; /* the chosen tag widens the first column */
+  }
+  th {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 500;
+    padding: 0 16px 10px 0;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  td {
+    padding: 12px 16px 12px 0;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink-2);
+    vertical-align: top;
+  }
+  td:first-child { color: var(--ink); font-weight: 500; }
+  td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.chosen td { background: var(--accent-soft); }
+  tr.chosen td:first-child { color: var(--accent); font-weight: 600; }
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    padding: 1px 5px;
+    margin-left: 8px;
+    white-space: nowrap;
+  }
+
+  /* ── Numbered phases (content is a genuine sequence) ───────────────────── */
+  ol.phases { list-style: none; padding: 0; margin: 24px 0 0; counter-reset: phase; }
+  ol.phases > li {
+    counter-increment: phase;
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 18px;
+    padding: 20px 0;
+    border-top: 1px solid var(--rule);
+    margin: 0;
+  }
+  ol.phases > li::before {
+    content: counter(phase, decimal-leading-zero);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+    padding-top: 3px;
+    font-variant-numeric: tabular-nums;
+  }
+  .phase-title { font-weight: 600; color: var(--ink); font-size: 15.5px; }
+  .phase-who {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-top: 3px;
+  }
+  .phase-body { color: var(--ink-2); font-size: 14.5px; margin-top: 8px; }
+
+  /* ── Callout ───────────────────────────────────────────────────────────── */
+  .callout {
+    border-left: 2px solid var(--accent);
+    background: var(--surface);
+    padding: 20px 24px;
+    margin-top: 22px;
+    border-radius: 0 4px 4px 0;
+  }
+  .callout h3 { margin-top: 0; }
+  .callout p, .callout li { font-size: 14.5px; }
+
+  /* Forward pointer to the next phase. Deliberately quieter than a finished
+     section: it is a placeholder, and should not read as delivered work. */
+
+  .footnote {
+    margin-top: 72px;
+    padding-top: 22px;
+    border-top: 1px solid var(--rule);
+    font-size: 13px;
+    color: var(--ink-3);
+    max-width: 70ch;
+  }
+
+  @media (max-width: 860px) {
+    .specs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 620px) {
+    body { padding: 0 18px 64px; font-size: 16px; }
+    .specs { grid-template-columns: minmax(0, 1fr); }
+    header.masthead { padding-top: 48px; }
+    ol.phases > li { grid-template-columns: 32px 1fr; gap: 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow">Cloud Deployment &middot; Phase 1 of 4</div>
+    <h1>Database Migration to AWS</h1>
+    <p class="lede">
+      Moving ABG Hub from a database running on a single office PC to a managed
+      cloud database. This is the foundation the hosted application will sit on,
+      and the only phase that touches live business data.
+    </p>
+    <div class="status-row">
+      <span class="pill done">Cloud database live</span>
+      <span class="pill done">Schema deployed</span>
+      <span class="pill done">Copy tested end to end</span>
+      <span class="pill pending">Awaiting office run</span>
+    </div>
+    <div class="meta">
+      <span>Prepared by<b>Rohan Dahal</b></span>
+      <span>System<b>ABG Hub 4.0</b></span>
+      <span>Target<b>PostgreSQL 17.10 &middot; AWS RDS</b></span>
+      <span>Running cost<b>~$14 / month</b></span>
+    </div>
+  </header>
+
+  <section class="measure">
+    <h2>Why the database goes first</h2>
+    <p class="sub">Nothing else in the deployment can be built until the data has somewhere to live.</p>
+    <p>
+      ABG Hub currently keeps everything on one machine in the office: the database,
+      the application, and the uploaded files. That machine is the single point of
+      failure for the entire business system. If it is off, stolen, or its disk
+      fails, the membership records go with it.
+    </p>
+    <p>
+      Moving the database out first means the records are backed up and reachable
+      from anywhere before any other change is made. It is also the only phase that
+      moves real data, so it is worth doing carefully and on its own, rather than
+      bundled into a larger cutover.
+    </p>
+  </section>
+
+  <section>
+    <h2>Database choice</h2>
+    <p class="sub">Same capability, without the licence.</p>
+    <div class="measure">
+      <p>
+        The office system runs SQL Server. Keeping SQL Server in the cloud is
+        possible but expensive: on AWS the licence is bundled into the hourly rate
+        and cannot be avoided. PostgreSQL is the closest equivalent with no licence
+        cost at all, and no ceiling on database size.
+      </p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Option</th>
+            <th>Monthly</th>
+            <th>Size limit</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="chosen">
+            <td>PostgreSQL on RDS <span class="tag">chosen</span></td>
+            <td class="num">~$14</td>
+            <td class="num">None</td>
+            <td>Managed backups, no licence cost</td>
+          </tr>
+          <tr>
+            <td>SQL Server Express on RDS</td>
+            <td class="num">~$40</td>
+            <td class="num">10 GB</td>
+            <td>Hard size cap; next tier is a large jump</td>
+          </tr>
+          <tr>
+            <td>SQL Server Standard on RDS</td>
+            <td class="num">~$400&ndash;600</td>
+            <td class="num">None</td>
+            <td>Licence is the bulk of the cost</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="measure">
+      <p style="margin-top:18px">
+        The trade-off is that application code written for SQL Server needs
+        translating. That work is scoped and scheduled as Phase&nbsp;2. It does not
+        block the data move, because the office system keeps running on SQL Server
+        until the new application is ready.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>What is already in place</h2>
+    <p class="sub">Provisioned, deployed and verified before any office involvement.</p>
+    <div class="panel">
+      <dl class="specs">
+        <div class="spec"><dt>Instance</dt><dd>db.t4g.micro<small>2 vCPU, single availability zone</small></dd></div>
+        <div class="spec"><dt>Engine</dt><dd>PostgreSQL 17.10</dd></div>
+        <div class="spec"><dt>Storage</dt><dd>20 GB<small>included in the monthly cost</small></dd></div>
+        <div class="spec"><dt>Storage scaling</dt><dd>Automatic, to 100 GB<small>$0.115 per GB beyond 20 GB, charged monthly</small></dd></div>
+        <div class="spec"><dt>Region</dt><dd>us-east-1<small>N. Virginia</small></dd></div>
+        <div class="spec"><dt>Encryption</dt><dd>At rest and in transit</dd></div>
+        <div class="spec"><dt>Protection</dt><dd>Deletion protection on</dd></div>
+        <div class="spec"><dt>Backups</dt><dd>Daily, 1 day retained<small>extends to 7 once billing plan is upgraded</small></dd></div>
+      </dl>
+    </div>
+
+    <h3>Translation work already completed</h3>
+    <div class="measure">
+      <p>
+        The schema was rebuilt for PostgreSQL and checked table by table against the
+        office database. Two differences mattered more than the rest:
+      </p>
+      <ul>
+        <li>
+          <strong>Text matching.</strong> SQL Server treats <code>ADMIN@abg.com</code> and
+          <code>admin@abg.com</code> as the same value; PostgreSQL does not. Eighteen
+          columns (every email address, ABG number, state code and vendor name) were
+          given case-insensitive types so that logging in and duplicate-checking behave
+          exactly as they do today.
+        </li>
+        <li>
+          <strong>Two missing tables.</strong> Neither the existing setup script nor the
+          application's own model was a complete description of the schema; each was
+          missing a table the other had. Both are now present in the cloud database.
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>How the migration runs</h2>
+    <p class="sub">Four steps on the day. Only one of them happens in the office.</p>
+    <ol class="phases">
+      <li>
+        <div>
+          <div class="phase-title">Update the office project folder</div>
+          <div class="phase-who">Office &middot; 1 minute</div>
+          <div class="phase-body">
+            Pulls down the migration tooling. No change to the application itself.
+          </div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <div class="phase-title">Connection test</div>
+          <div class="phase-who">Office &middot; 1 minute &middot; changes nothing</div>
+          <div class="phase-body">
+            Confirms the office database is readable, the cloud database is reachable,
+            the two schemas agree, and the data is consistent. Nothing is written in
+            this step, so there is nothing to undo if it fails.
+          </div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <div class="phase-title">Data copy</div>
+          <div class="phase-who">Office &middot; minutes, depending on connection speed</div>
+          <div class="phase-body">
+            Requires the ABG Hub window to be closed first, so that no record changes
+            mid-copy. The copy then verifies itself, checking every table's row count and every
+            relationship between tables, before reporting success.
+          </div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <div class="phase-title">Verification</div>
+          <div class="phase-who">Remote &middot; no office involvement</div>
+          <div class="phase-body">
+            Each run records its own outcome inside the cloud database, so the result can
+            be confirmed independently rather than relying on someone reading a screen.
+          </div>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Safeguards</h2>
+    <p class="sub">The office system is the system of record until the cutover, and is treated as such.</p>
+    <div class="callout measure">
+      <h3>Nothing on the office machine is changed</h3>
+      <p>
+        Every instruction sent to the office database is a read. There is no delete,
+        update, insert or clear operation anywhere in the process, on any path,
+        including error paths. No files are moved and nothing is cleaned up afterwards.
+      </p>
+    </div>
+    <div class="callout measure">
+      <h3>Safe to repeat</h3>
+      <p>
+        Each run replaces the cloud copy in full rather than adding to it, so an
+        interrupted or failed attempt is fixed by simply running it again. There is no
+        half-finished state to reason about.
+      </p>
+    </div>
+    <div class="callout measure">
+      <h3>It stops rather than guesses</h3>
+      <p>
+        If the office database appears empty, if records are found pointing at records
+        that no longer exist, or if the two schemas disagree in a way that would lose
+        data, the run halts before writing anything and reports what it found.
+      </p>
+    </div>
+    <div class="callout measure">
+      <h3>Access is temporary</h3>
+      <p>
+        The office machine connects using a credential created solely for this copy,
+        limited to this one database. It is revoked once the migration is confirmed,
+        after which it grants nothing.
+      </p>
+    </div>
+  </section>
+
+  <section class="measure">
+    <h2>Not included in this phase</h2>
+    <p class="sub">Deliberately deferred, and tracked.</p>
+    <ul>
+      <li>
+        <strong>Uploaded files.</strong> Visit photographs, signature images and ticket
+        attachments are stored as files on the office machine rather than inside the
+        database, so they are not part of this copy. They move in Phase&nbsp;3, when the
+        application itself moves and needs somewhere to read them from.
+      </li>
+      <li>
+        <strong>The application.</strong> It continues to run in the office, against the
+        office database, unchanged. Staff see no difference during this phase.
+      </li>
+      <li>
+        <strong>Report emailing.</strong> The weekly report feature drives Outlook on the
+        office desktop directly. That cannot work on a cloud server and needs replacing
+        before the application moves.
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Road to full deployment</h2>
+    <p class="sub">This phase is the foundation; three remain.</p>
+    <ol class="phases">
+      <li>
+        <div>
+          <div class="phase-title">Database Migration to AWS</div>
+          <div class="phase-who">Current phase</div>
+          <div class="phase-body">Cloud database live, tested, awaiting the office run.</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <div class="phase-title">Application Migration to PostgreSQL</div>
+          <div class="phase-who">Next &middot; estimated 2&ndash;3 days &middot; nothing visible to staff</div>
+          <div class="phase-body">
+            Around fifty places in the application still expect the old database and
+            have to be reworked. The work is mechanical rather than uncertain, and each
+            change is tested against a copy of the real data rather than a test fixture.
+            Staff carry on using the office system throughout.
+          </div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <div class="phase-title">Application Deployment to AWS</div>
+          <div class="phase-who">Scoping</div>
+          <div class="phase-body">
+            The application moves off the office PC onto a server, reached through a
+            proper web address with a security certificate. Three things have to be
+            rebuilt on the way, because they currently depend on that one machine:
+            uploaded photographs and signatures move to cloud storage, the weekly report
+            emails move off desktop Outlook, and the overnight sync job moves onto the
+            server. Runs alongside the office system, not instead of it.
+          </div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <div class="phase-title">Production Cutover</div>
+          <div class="phase-who">Scheduled with the office</div>
+          <div class="phase-body">
+            A final data copy, then staff switch to the hosted application and the office
+            PC stops being the system of record. It stays available, untouched, as a
+            fallback until the new system has proven itself over a full working cycle.
+            Backups, monitoring and access are tightened at this point, when there is
+            live data to protect.
+          </div>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+
+  <section class="measure">
+    <h2>Open items</h2>
+    <ul>
+      <li>
+        <strong>Backup retention.</strong> Currently one day, which is the cap on the
+        account's present billing plan. Upgrading raises it to seven, which is the
+        minimum this deserves once it holds live records rather than test data.
+      </li>
+      <li>
+        <strong>Network access.</strong> Access is deliberately broad for the migration
+        window, so that the office can connect without its network details being known
+        in advance. It gets locked to the office address once the first successful run
+        identifies it, and the temporary credential is revoked at the same time.
+      </li>
+      <li>
+        <strong>Untested on Windows.</strong> The tooling has been proven end to end,
+        but on a Mac. The office machine is the first Windows run.
+      </li>
+    </ul>
+  </section>
+
+  <p class="footnote">
+    The copy has been rehearsed end to end against the live cloud database at full
+    scale, including attachments, with row counts and relationships checked afterwards.
+    Duration in the office will depend on the size of the real dataset and the speed of
+    the office internet connection.
+  </p>
+
+</div>
+</body>
+</html>
