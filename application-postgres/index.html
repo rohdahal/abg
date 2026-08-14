@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<meta name="description" content="Phase 1 of the ABG Hub cloud deployment: migrating the database from an on-premise SQL Server to PostgreSQL on AWS RDS.">
+<meta name="description" content="Phase 2 of the ABG Hub cloud deployment: porting the application from SQL Server to PostgreSQL and packaging it to run on any machine with Docker.">
 <meta name="color-scheme" content="light dark">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
@@ -13,7 +13,7 @@
   ul, ol { padding: 0; }
   img, svg { display: block; max-width: 100%; }
 </style>
-<title>ABG Hub Cloud Migration</title>
+<title>ABG Hub Phase 2</title>
 <style>
   /* ═══ Shared house style — identical on every phase page ═══════════════════ */
   :root {
@@ -233,239 +233,186 @@
   <div class="topbar">
     <a class="home" href="../"><span class="glyph">&#9632;</span> <b>ABG Hub</b> &nbsp;Cloud Migration</a>
     <nav class="navarrows" aria-label="Phase navigation">
-      <span class="off" aria-hidden="true">&lsaquo;</span>
-      <a href="../application-postgres/" aria-label="Next phase: Application to PostgreSQL" title="Phase 2 &middot; Application to PostgreSQL">&rsaquo;</a>
+      <a href="../cloud-migration-plan/" aria-label="Previous phase: Database Migration to AWS" title="Phase 1 &middot; Database Migration to AWS">&lsaquo;</a>
+      <span class="off" aria-hidden="true">&rsaquo;</span>
     </nav>
   </div>
 
   <header class="masthead">
-    <div class="eyebrow">Cloud Deployment &middot; Phase 1 of 4</div>
-    <h1>Database Migration to AWS</h1>
+    <div class="eyebrow">Cloud Deployment &middot; Phase 2 of 4</div>
+    <h1>Application Migration to PostgreSQL</h1>
     <p class="lede">
-      Moving ABG Hub from a database running on a single office PC to a managed
-      cloud database. This is the foundation the hosted application will sit on,
-      and the only phase that touches live business data.
+      Phase&nbsp;1 moved the data to the cloud. Phase&nbsp;2 moves the application that
+      reads it: the membership system now runs on PostgreSQL instead of SQL Server,
+      and starts on any Windows or Mac machine with a single command. Nothing changes
+      for the staff who use it.
     </p>
     <div class="status-row">
-      <span class="pill done"><span class="dot"></span>Cloud database live</span>
-      <span class="pill done"><span class="dot"></span>Schema deployed</span>
-      <span class="pill done"><span class="dot"></span>Copy tested end to end</span>
-      <span class="pill pending">Awaiting office run</span>
+      <span class="pill done"><span class="dot"></span>Running on PostgreSQL</span>
+      <span class="pill done"><span class="dot"></span>Verified against the cloud database</span>
+      <span class="pill done"><span class="dot"></span>Runs on any machine</span>
     </div>
     <div class="meta">
       <span>Prepared by<b>Rohan Dahal</b></span>
-      <span>System<b>ABG Hub 4.0</b></span>
-      <span>Target<b>PostgreSQL 17.10 &middot; AWS RDS</b></span>
-      <span>Running cost<b>~$14 / month</b></span>
+      <span>Engine<b>PostgreSQL 17.10 &middot; AWS RDS</b></span>
+      <span>Staff downtime<b>None</b></span>
+      <span>Status<b>Complete &middot; for review</b></span>
     </div>
   </header>
 
+  <div class="stats">
+    <div class="stat"><div class="v">27,600<small> rows</small></div><div class="k">carried across, 33 tables</div></div>
+    <div class="stat"><div class="v">76</div><div class="k">endpoints, all verified</div></div>
+    <div class="stat"><div class="v">1<small> command</small></div><div class="k">to run, any OS</div></div>
+    <div class="stat"><div class="v">~$14<small>/mo</small></div><div class="k">database hosting</div></div>
+  </div>
+
   <section class="measure">
-    <h2>Why the database goes first</h2>
-    <p class="sub">Nothing else in the deployment can be built until the data has somewhere to live.</p>
+    <h2>What Phase 2 set out to do</h2>
+    <p class="sub">Phase 1 moved the data. Phase 2 moves the application that reads it.</p>
     <p>
-      ABG Hub currently keeps everything on one machine in the office: the database,
-      the application, and the uploaded files. That machine is the single point of
-      failure for the entire business system. If it is off, stolen, or its disk
-      fails, the membership records go with it.
+      Until now the software spoke only to SQL Server, the database that runs on the
+      office PC. Phase 2 rewrites the parts of the application that talk to the database
+      so they speak to <strong>PostgreSQL</strong> instead, the open engine chosen for the
+      cloud. The reason is cost: PostgreSQL carries no licence fee, which keeps hosting
+      near <strong>fourteen dollars a month</strong> rather than the several hundred a
+      licensed SQL Server would demand.
     </p>
     <p>
-      Moving the database out first means the records are backed up and reachable
-      from anywhere before any other change is made. It is also the only phase that
-      moves real data, so it is worth doing carefully and on its own, rather than
-      bundled into a larger cutover.
+      The important promise is that this is invisible. Every screen, report, and number
+      the staff see is unchanged. What changed sits underneath, in the language the
+      application uses to ask the database questions.
     </p>
   </section>
 
   <section>
-    <h2>Database choice</h2>
-    <p class="sub">Same capability, without the licence.</p>
+    <h2>What changed underneath</h2>
+    <p class="sub">The two databases are close cousins, not twins. Around fifty places assumed SQL Server, and each was translated.</p>
+
+    <h3>Query language</h3>
     <div class="measure">
       <p>
-        The office system runs SQL Server. Keeping SQL Server in the cloud is
-        possible but expensive: on AWS the licence is bundled into the hourly rate
-        and cannot be avoided. PostgreSQL is the closest equivalent with no licence
-        cost at all, and no ceiling on database size.
+        SQL Server and PostgreSQL phrase the same request differently. Each pattern was
+        translated to its PostgreSQL equivalent and checked against real data.
       </p>
     </div>
     <div class="scroll">
       <table>
-        <thead>
-          <tr><th>Option</th><th>Monthly</th><th>Size limit</th><th>Notes</th></tr>
-        </thead>
+        <thead><tr><th>SQL Server</th><th>PostgreSQL</th><th>What it does</th></tr></thead>
         <tbody>
-          <tr class="chosen">
-            <td>PostgreSQL on RDS <span class="tag">chosen</span></td>
-            <td class="num">~$14</td><td class="num">None</td>
-            <td>Managed backups, no licence cost</td>
-          </tr>
-          <tr>
-            <td>SQL Server Express on RDS</td>
-            <td class="num">~$40</td><td class="num">10 GB</td>
-            <td>Hard size cap; next tier is a large jump</td>
-          </tr>
-          <tr>
-            <td>SQL Server Standard on RDS</td>
-            <td class="num">~$400&ndash;600</td><td class="num">None</td>
-            <td>Licence is the bulk of the cost</td>
-          </tr>
+          <tr><td><code>TOP n</code></td><td><code>LIMIT n</code></td><td>Take the first n rows</td></tr>
+          <tr><td><code>ISNULL()</code></td><td><code>COALESCE()</code></td><td>Fall back when empty</td></tr>
+          <tr><td><code>GETDATE()</code></td><td><code>now()</code></td><td>Current date and time</td></tr>
+          <tr><td><code>OUTPUT INSERTED</code></td><td><code>RETURNING</code></td><td>Read back a new row</td></tr>
+          <tr><td><code>CONVERT(VARCHAR,&hellip;)</code></td><td><code>to_char(&hellip;)</code></td><td>Format a date</td></tr>
+          <tr><td><code>[Brackets]</code></td><td><code>"Quotes"</code></td><td>Name a column</td></tr>
         </tbody>
       </table>
     </div>
     <div class="measure">
-      <p style="margin-top:18px">
-        The trade-off is that application code written for SQL Server needs
-        translating. That work is scoped and scheduled as Phase&nbsp;2. It does not
-        block the data move, because the office system keeps running on SQL Server
-        until the new application is ready.
+      <p style="margin-top:14px;color:var(--ink-3);font-size:14px">
+        A representative sample. The full set also covers date arithmetic, text joining,
+        type casts and boolean flags.
       </p>
+
+      <h3>Case-insensitive matching, preserved exactly</h3>
+      <p>
+        On the office database, searching for <code>ADMIN</code>, <code>admin</code> or
+        <code>Admin</code> returns the same result, because SQL Server ignores letter case
+        by default. PostgreSQL does not. Left unaddressed, a manager searching by status or
+        name would quietly get fewer results than before, with no error to signal it.
+      </p>
+      <p>
+        This was fixed at the foundation rather than patched search by search:
+        <strong>39 columns</strong> (the status, role and name fields, among others) now use
+        a case-insensitive column type, so the database itself treats case the way the office
+        always has. It even continues to reject a duplicate <code>Admin</code> next to an
+        existing <code>admin</code>, exactly as before.
+      </p>
+
+      <h3>The spreadsheet sync, rewritten in step</h3>
+      <p>
+        A separate routine keeps the system in step with Google Sheets and talked to SQL
+        Server directly, bypassing the rest of the application. It was ported alongside
+        everything else, so the nightly sync behaves identically on the new engine.
+      </p>
+    </div>
+
+    <div class="note measure">
+      <span class="lbl">A note on method</span>
+      Rather than reason about what <b>might</b> break, a local copy of PostgreSQL was loaded
+      with the real 27,600 rows and every screen was exercised against it. That turned
+      guesswork into a concrete list of issues to fix, and it is how subtle differences (a
+      search returning too few rows, results sorted in a different order) were caught before
+      the client ever saw them.
     </div>
   </section>
 
   <section>
-    <h2>What is already in place</h2>
-    <p class="sub">Provisioned, deployed and verified before any office involvement.</p>
-    <div class="panel">
-      <dl class="specs">
-        <div class="spec"><dt>Instance</dt><dd>db.t4g.micro<small>2 vCPU, single availability zone</small></dd></div>
-        <div class="spec"><dt>Engine</dt><dd>PostgreSQL 17.10</dd></div>
-        <div class="spec"><dt>Storage</dt><dd>20 GB<small>included in the monthly cost</small></dd></div>
-        <div class="spec"><dt>Storage scaling</dt><dd>Automatic, to 100 GB<small>$0.115 per GB beyond 20 GB, charged monthly</small></dd></div>
-        <div class="spec"><dt>Region</dt><dd>us-east-1<small>N. Virginia</small></dd></div>
-        <div class="spec"><dt>Encryption</dt><dd>At rest and in transit</dd></div>
-        <div class="spec"><dt>Protection</dt><dd>Deletion protection on</dd></div>
-        <div class="spec"><dt>Backups</dt><dd>Daily, 1 day retained<small>extends to 7 once billing plan is upgraded</small></dd></div>
-      </dl>
-    </div>
-
-    <h3>Translation work already completed</h3>
+    <h2>How it runs now</h2>
+    <p class="sub">The application no longer needs a hand-built machine. It runs the same way on any Windows or Mac computer.</p>
     <div class="measure">
       <p>
-        The schema was rebuilt for PostgreSQL and checked table by table against the
-        office database. Two differences mattered more than the rest:
+        Everything the application needs, the database, the interface and the web server,
+        is packaged together with <strong>Docker</strong>. Once Docker Desktop is installed,
+        the whole system starts with one line:
       </p>
-      <ul>
-        <li>
-          <strong>Text matching.</strong> SQL Server treats <code>ADMIN@abg.com</code> and
-          <code>admin@abg.com</code> as the same value; PostgreSQL does not. Eighteen
-          columns (every email address, ABG number, state code and vendor name) were
-          given case-insensitive types so that logging in and duplicate-checking behave
-          exactly as they do today.
-        </li>
-        <li>
-          <strong>Two missing tables.</strong> Neither the existing setup script nor the
-          application's own model was a complete description of the schema; each was
-          missing a table the other had. Both are now present in the cloud database.
-        </li>
-      </ul>
+    </div>
+    <div class="cmd measure"><span class="p">$</span> docker compose up -d</div>
+    <div class="measure">
+      <p>
+        The database builds its own structure on first start, the interface appears in a
+        browser, and there is nothing to configure by hand. A short, illustrated guide covers
+        installing Docker Desktop and running these steps on both Windows and Mac. A second
+        command loads a live copy of the real data from the cloud whenever a working set is
+        needed.
+      </p>
     </div>
   </section>
 
   <section>
-    <h2>How the migration runs</h2>
-    <p class="sub">Four steps on the day. Only one of them happens in the office.</p>
-    <ol class="phases">
-      <li><div>
-        <div class="phase-title">Update the office project folder</div>
-        <div class="phase-who">Office &middot; 1 minute</div>
-        <div class="phase-body">Pulls down the migration tooling. No change to the application itself.</div>
-      </div></li>
-      <li><div>
-        <div class="phase-title">Connection test</div>
-        <div class="phase-who">Office &middot; 1 minute &middot; changes nothing</div>
-        <div class="phase-body">Confirms the office database is readable, the cloud database is reachable, the two schemas agree, and the data is consistent. Nothing is written in this step, so there is nothing to undo if it fails.</div>
-      </div></li>
-      <li><div>
-        <div class="phase-title">Data copy</div>
-        <div class="phase-who">Office &middot; minutes, depending on connection speed</div>
-        <div class="phase-body">Requires the ABG Hub window to be closed first, so that no record changes mid-copy. The copy then verifies itself, checking every table's row count and every relationship between tables, before reporting success.</div>
-      </div></li>
-      <li><div>
-        <div class="phase-title">Verification</div>
-        <div class="phase-who">Remote &middot; no office involvement</div>
-        <div class="phase-body">Each run records its own outcome inside the cloud database, so the result can be confirmed independently rather than relying on someone reading a screen.</div>
-      </div></li>
-    </ol>
-  </section>
-
-  <section>
-    <h2>Safeguards</h2>
-    <p class="sub">The office system is the system of record until the cutover, and is treated as such.</p>
-    <div class="callout measure">
-      <h3>Nothing on the office machine is changed</h3>
-      <p>Every instruction sent to the office database is a read. There is no delete, update, insert or clear operation anywhere in the process, on any path, including error paths. No files are moved and nothing is cleaned up afterwards.</p>
-    </div>
-    <div class="callout measure">
-      <h3>Safe to repeat</h3>
-      <p>Each run replaces the cloud copy in full rather than adding to it, so an interrupted or failed attempt is fixed by simply running it again. There is no half-finished state to reason about.</p>
-    </div>
-    <div class="callout measure">
-      <h3>It stops rather than guesses</h3>
-      <p>If the office database appears empty, if records are found pointing at records that no longer exist, or if the two schemas disagree in a way that would lose data, the run halts before writing anything and reports what it found.</p>
-    </div>
-    <div class="callout measure">
-      <h3>Access is temporary</h3>
-      <p>The office machine connects using a credential created solely for this copy, limited to this one database. It is revoked once the migration is confirmed, after which it grants nothing.</p>
+    <h2>Verified, not assumed</h2>
+    <p class="sub">Phase 2 was signed off against a real cloud database, not a developer's guess. Each of these was checked directly.</p>
+    <ul class="checks">
+      <li><span class="ck">&#10003;</span><span class="tx"><b>All 76 read endpoints</b> return correctly against PostgreSQL on AWS RDS.</span></li>
+      <li><span class="ck">&#10003;</span><span class="tx"><b>The full database structure</b> (33 tables) builds itself on a fresh start.</span></li>
+      <li><span class="ck">&#10003;</span><span class="tx"><b>Reports keep their exact spreadsheet headings</b> and their <code>MM/DD/YYYY</code> dates.</span></li>
+      <li><span class="ck">&#10003;</span><span class="tx"><b>Every store still reconciles:</b> 1,094 and 1,832 vendor rows account for all 2,926 stores.</span></li>
+      <li><span class="ck">&#10003;</span><span class="tx"><b>Case-insensitive search</b> returns what the office expects, confirmed against the old behaviour.</span></li>
+      <li><span class="ck">&#10003;</span><span class="tx"><b>A clean start on a bare machine</b> was rehearsed end to end: database, interface and web app all came up from nothing.</span></li>
+    </ul>
+    <h3>A safety net for what comes next</h3>
+    <div class="measure">
+      <p>
+        A new suite of <strong>94 automated tests</strong> now runs every database statement
+        against a real PostgreSQL server, on every change. Its job is to catch any SQL Server
+        assumption that slips back in before it can reach the client. It was proven to work by
+        deliberately reintroducing an old pattern and watching the tests fail.
+      </p>
     </div>
   </section>
 
   <section class="measure">
-    <h2>Not included in this phase</h2>
-    <p class="sub">Deliberately deferred, and tracked.</p>
-    <ul>
-      <li><strong>Uploaded files.</strong> Visit photographs, signature images and ticket attachments are stored as files on the office machine rather than inside the database, so they are not part of this copy. They move in Phase&nbsp;3, when the application itself moves and needs somewhere to read them from.</li>
-      <li><strong>The application.</strong> It continues to run in the office, against the office database, unchanged. Staff see no difference during this phase.</li>
-      <li><strong>Report emailing.</strong> The weekly report feature drives Outlook on the office desktop directly. That cannot work on a cloud server and needs replacing before the application moves.</li>
-    </ul>
+    <h2>What Phase 2 leaves for later</h2>
+    <p class="sub">Two phases remain, and one item is deliberately staged for the next.</p>
+    <p>
+      The application is ready to run in the cloud, but for now it is still started by hand
+      and keeps uploaded files (photos, signatures, PDFs) on local disk. <strong>Phase 3</strong>
+      gives it a permanent home on a small cloud server, moves those files to cloud storage,
+      and replaces the last few things that only a Windows office PC can do today, chiefly the
+      weekly report emails. <strong>Phase 4</strong> is the final switch, with the office PC
+      kept untouched as a fallback for a full working cycle before it is retired.
+    </p>
+    <p>
+      Each phase stays reversible until that last step, so there is no point before cutover
+      where the office system cannot simply carry on.
+    </p>
   </section>
-
-  <section>
-    <h2>Road to full deployment</h2>
-    <p class="sub">This phase is the foundation; three remain.</p>
-    <ol class="phases">
-      <li><div>
-        <div class="phase-title">Database Migration to AWS</div>
-        <div class="phase-who">This phase</div>
-        <div class="phase-body">Cloud database live, tested, awaiting the office run.</div>
-      </div></li>
-      <li><div>
-        <div class="phase-title">Application Migration to PostgreSQL</div>
-        <div class="phase-who">Complete &middot; nothing visible to staff</div>
-        <div class="phase-body">Around fifty places in the application expected the old database and were reworked, then verified against a copy of the real data. <a href="../application-postgres/">See the Phase&nbsp;2 detail &rarr;</a></div>
-      </div></li>
-      <li><div>
-        <div class="phase-title">Application Deployment to AWS</div>
-        <div class="phase-who">Scoping</div>
-        <div class="phase-body">The application moves off the office PC onto a server, reached through a proper web address with a security certificate. Uploaded photographs and signatures move to cloud storage, the weekly report emails move off desktop Outlook, and the overnight sync job moves onto the server. Runs alongside the office system, not instead of it.</div>
-      </div></li>
-      <li><div>
-        <div class="phase-title">Production Cutover</div>
-        <div class="phase-who">Scheduled with the office</div>
-        <div class="phase-body">A final data copy, then staff switch to the hosted application and the office PC stops being the system of record. It stays available, untouched, as a fallback until the new system has proven itself over a full working cycle.</div>
-      </div></li>
-    </ol>
-  </section>
-
-  <section class="measure">
-    <h2>Open items</h2>
-    <ul>
-      <li><strong>Backup retention.</strong> Currently one day, which is the cap on the account's present billing plan. Upgrading raises it to seven, which is the minimum this deserves once it holds live records rather than test data.</li>
-      <li><strong>Network access.</strong> Access is deliberately broad for the migration window, so that the office can connect without its network details being known in advance. It gets locked to the office address once the first successful run identifies it, and the temporary credential is revoked at the same time.</li>
-      <li><strong>Untested on Windows.</strong> The tooling has been proven end to end, but on a Mac. The office machine is the first Windows run.</li>
-    </ul>
-  </section>
-
-  <p class="footnote">
-    The copy has been rehearsed end to end against the live cloud database at full
-    scale, including attachments, with row counts and relationships checked afterwards.
-    Duration in the office will depend on the size of the real dataset and the speed of
-    the office internet connection.
-  </p>
 
   <div class="pager">
-    <a class="next" href="../application-postgres/">
-      <span class="dir">Next phase &rarr;</span>
-      <span class="lbl2">Application to PostgreSQL</span>
+    <a class="prev" href="../cloud-migration-plan/">
+      <span class="dir">&larr; Previous phase</span>
+      <span class="lbl2">Database Migration to AWS</span>
     </a>
   </div>
 

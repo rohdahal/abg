@@ -10,26 +10,33 @@
   body {
     margin: 0; padding: 72px 24px;
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    line-height: 1.6; background: #f5f7f9; color: #141a21;
+    line-height: 1.6; background: #f4f6f6; color: #141d24;
   }
   @media (prefers-color-scheme: dark) {
-    body { background: #0e1217; color: #e7ecf2; }
-    a { color: #83b4e2; }
-    .eyebrow { color: #83b4e2; }
-    li { border-color: #29313b; }
+    body { background: #0d1317; color: #e7eef2; }
+    a { color: #6cebdd; }
+    .eyebrow { color: #6cebdd; }
+    li { border-color: #22303a; }
+    .done { color: #6cebdd; border-color: #35d6c3; background: #102321; }
   }
   main { max-width: 620px; margin: 0 auto; }
   .eyebrow {
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: #1f4e79; margin-bottom: 14px;
+    color: #0b5a53; margin-bottom: 14px;
   }
   h1 { font-size: 28px; margin: 0 0 28px; font-weight: 600; }
   ul { list-style: none; padding: 0; margin: 0; }
-  li { padding: 18px 0; border-top: 1px solid #dbe1e8; }
-  a { font-size: 17px; font-weight: 600; text-decoration: none; color: #1f4e79; }
+  li { padding: 18px 0; border-top: 1px solid #e0e6e7; }
+  a { font-size: 17px; font-weight: 600; text-decoration: none; color: #0b5a53; }
   a:hover, a:focus-visible { text-decoration: underline; }
   p { margin: 4px 0 0; font-size: 14.5px; opacity: 0.75; }
+  .done {
+    display: inline-block; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: #0b5a53; border: 1px solid #0f766e; background: #e3f0ee;
+    border-radius: 999px; padding: 2px 8px; margin-left: 8px; vertical-align: 2px;
+  }
 </style>
 </head>
 <body>
@@ -38,8 +45,12 @@
   <h1>Documents</h1>
   <ul>
     <li>
-      <a href="cloud-migration-plan/">Phase 1 &mdash; Database Migration to AWS</a>
+      <a href="cloud-migration-plan/">Phase 1 &mdash; Database Migration to AWS</a><span class="done">Complete</span>
       <p>Moving the database from the office SQL Server to PostgreSQL on AWS RDS.</p>
+    </li>
+    <li>
+      <a href="application-postgres/">Phase 2 &mdash; Application Migration to PostgreSQL</a><span class="done">Complete</span>
+      <p>Porting the application off SQL Server, and packaging it to run on any machine with Docker.</p>
     </li>
   </ul>
 </main>
