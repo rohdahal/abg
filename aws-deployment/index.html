@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<meta name="description" content="Phase 2 of the ABG Hub cloud deployment: porting the application from SQL Server to PostgreSQL and packaging it to run on any machine with Docker.">
+<meta name="description" content="Phase 3 of the ABG Hub cloud deployment: moving the application off the office PC and into AWS, with a repeatable deployment pipeline.">
 <meta name="color-scheme" content="light dark">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
@@ -13,7 +13,7 @@
   ul, ol { padding: 0; }
   img, svg { display: block; max-width: 100%; }
 </style>
-<title>ABG Hub Phase 2</title>
+<title>ABG Hub Phase 3</title>
 <style>
   /* ═══ Shared house style — identical on every phase page ═══════════════════ */
   :root {
@@ -268,195 +268,164 @@
 </head>
 <body>
 <div class="wrap">
-
   <div class="topbar">
     <a class="home" href="../"><span class="glyph">&#9632;</span> <b>ABG Hub</b> <span class="hm-sub">&nbsp;Cloud Migration</span></a>
     <nav class="navarrows" aria-label="Phase navigation">
-      <a href="../cloud-migration-plan/" aria-label="Previous phase: Database Migration to AWS" title="Phase 1 &middot; Database Migration to AWS">&lsaquo;</a>
-      <a href="../aws-deployment/" aria-label="Next phase: Application Deployment to AWS" title="Phase 3 &middot; Application Deployment to AWS">&rsaquo;</a>
+      <a href="../application-postgres/" aria-label="Previous phase: Application Migration to PostgreSQL" title="Phase 2 &middot; Application Migration to PostgreSQL">&lsaquo;</a>
+      <a href="../crm-hub-launch/" aria-label="Next phase: CRM Hub Launch" title="Phase 4 &middot; CRM Hub Launch">&rsaquo;</a>
     </nav>
   </div>
 
   <header class="masthead">
-    <div class="eyebrow">Cloud Deployment &middot; Phase 2 of 6</div>
-    <h1>Application Migration to PostgreSQL</h1>
+    <div class="eyebrow">Cloud Deployment &middot; Phase 3 of 6</div>
+    <h1>Application Deployment to AWS</h1>
     <p class="lede">
-      Phase&nbsp;1 moved the data to the cloud. Phase&nbsp;2 moves the application that
-      reads it: the membership system now runs on PostgreSQL instead of SQL Server,
-      and starts on any Windows or Mac machine with a single command. Nothing changes
-      for the staff who use it.
+      Phase&nbsp;2 made the application run on any machine. Phase&nbsp;3 takes it off the
+      office machine altogether. ABG Hub now runs in AWS, reachable from anywhere, and
+      a change reaches production by being pushed rather than by someone being at a
+      particular desk.
     </p>
     <div class="status-row">
-      <span class="pill done"><span class="dot"></span>Running on PostgreSQL</span>
-      <span class="pill done"><span class="dot"></span>Verified against the cloud database</span>
-      <span class="pill done"><span class="dot"></span>Runs on any machine</span>
+      <span class="pill done"><span class="dot"></span>Running in AWS</span>
+      <span class="pill done"><span class="dot"></span>Deploys itself from the repository</span>
+      <span class="pill done"><span class="dot"></span>No office machine involved</span>
     </div>
     <div class="meta">
       <span>Prepared by<b>Rohan Dahal</b></span>
-      <span>Engine<b>PostgreSQL 17.10 &middot; AWS RDS</b></span>
+      <span>Runtime<b>AWS Lambda &middot; container image</b></span>
       <span>Staff downtime<b>None</b></span>
       <span>Status<b>Complete &middot; for review</b></span>
     </div>
   </header>
 
   <div class="stats">
-    <div class="stat"><div class="v">27,600<small> rows</small></div><div class="k">carried across, 33 tables</div></div>
-    <div class="stat"><div class="v">76</div><div class="k">endpoints, all verified</div></div>
-    <div class="stat"><div class="v">1<small> command</small></div><div class="k">to run, any OS</div></div>
-    <div class="stat"><div class="v">~$14<small>/mo</small></div><div class="k">database hosting</div></div>
+    <div class="stat"><div class="v">0</div><div class="k">servers to patch or restart</div></div>
+    <div class="stat"><div class="v">3<small> parts</small></div><div class="k">database, API and web app</div></div>
+    <div class="stat"><div class="v">1<small> push</small></div><div class="k">deploys all of it</div></div>
+    <div class="stat"><div class="v">0<small> keys</small></div><div class="k">stored in the pipeline</div></div>
   </div>
 
   <section class="measure">
-    <h2>What Phase 2 set out to do</h2>
-    <p class="sub">Phase 1 moved the data. Phase 2 moves the application that reads it.</p>
+    <h2>What Phase 3 set out to do</h2>
     <p>
-      Until now the software spoke only to SQL Server, the database that runs on the
-      office PC. Phase 2 rewrites the parts of the application that talk to the database
-      so they speak to <strong>PostgreSQL</strong> instead, the open engine chosen for the
-      cloud. The reason is cost: PostgreSQL carries no licence fee, which keeps hosting
-      near <strong>fourteen dollars a month</strong> rather than the several hundred a
-      licensed SQL Server would demand.
+      Until now, ABG Hub existed on one Windows PC in the office. If that machine was
+      asleep, switched off, or being used for something else, the system was unavailable.
+      Backups, updates and recovery all depended on that one box continuing to work.
     </p>
     <p>
-      The important promise is that this is invisible. Every screen, report, and number
-      the staff see is unchanged. What changed sits underneath, in the language the
-      application uses to ask the database questions.
+      Phase&nbsp;3 removes that dependency. The application moved into AWS, the files moved
+      with it, and the process for shipping a change became a repeatable pipeline instead of
+      a manual routine carried out on the office machine.
     </p>
   </section>
 
   <section>
-    <h2>What changed underneath</h2>
-    <p class="sub">The two databases are close cousins, not twins. Around fifty places assumed SQL Server, and each was translated.</p>
+    <h2>Where the application runs now</h2>
+    <p class="sub">Three pieces, each doing one job, none of them a machine anybody has to look after.</p>
 
-    <h3>Query language</h3>
+    <div class="specs">
+      <div class="spec">
+        <div class="phase-title">The API</div>
+        <div class="phase-who">AWS Lambda, container image</div>
+        <div class="phase-body">
+          The application is packaged as a container and run on demand. There is no server to
+          keep running, no operating system to patch, and nothing to restart after a power cut.
+          It costs nothing while nobody is using it.
+        </div>
+      </div>
+      <div class="spec">
+        <div class="phase-title">The web interface</div>
+        <div class="phase-who">Amazon S3 and CloudFront</div>
+        <div class="phase-body">
+          The part that runs in the browser is published as static files and delivered from
+          AWS's global network, so it loads quickly and stays available independently of the
+          API.
+        </div>
+      </div>
+      <div class="spec">
+        <div class="phase-title">The data and the files</div>
+        <div class="phase-who">RDS PostgreSQL and S3</div>
+        <div class="phase-body">
+          Visit photos, signatures, ticket attachments and generated PDFs now live in S3
+          rather than on a desktop hard drive. The same code still writes to local disk when
+          a developer runs it on their own machine.
+        </div>
+      </div>
+      <div class="spec">
+        <div class="phase-title">The release process</div>
+        <div class="phase-who">GitHub Actions and AWS</div>
+        <div class="phase-body">
+          The steps that put a change live are written down and run the same way every time, so a release is a repeatable procedure rather than a person remembering an order.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>How a change reaches production</h2>
     <div class="measure">
       <p>
-        SQL Server and PostgreSQL phrase the same request differently. Each pattern was
-        translated to its PostgreSQL equivalent and checked against real data.
+        Pushing to the main branch of the repository is the whole procedure. A pipeline then
+        does the same four things, in the same order, every time.
       </p>
     </div>
-    <p class="swipe">Swipe the table sideways to see every column.</p>
-    <div class="scroll">
-      <table>
-        <thead><tr><th>SQL Server</th><th>PostgreSQL</th><th>What it does</th></tr></thead>
-        <tbody>
-          <tr><td><code>TOP n</code></td><td><code>LIMIT n</code></td><td>Take the first n rows</td></tr>
-          <tr><td><code>ISNULL()</code></td><td><code>COALESCE()</code></td><td>Fall back when empty</td></tr>
-          <tr><td><code>GETDATE()</code></td><td><code>now()</code></td><td>Current date and time</td></tr>
-          <tr><td><code>OUTPUT INSERTED</code></td><td><code>RETURNING</code></td><td>Read back a new row</td></tr>
-          <tr><td><code>CONVERT(VARCHAR,&hellip;)</code></td><td><code>to_char(&hellip;)</code></td><td>Format a date</td></tr>
-          <tr><td><code>[Brackets]</code></td><td><code>"Quotes"</code></td><td>Name a column</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="measure">
-      <p style="margin-top:14px;color:var(--ink-3);font-size:14px">
-        A representative sample. The full set also covers date arithmetic, text joining,
-        type casts and boolean flags.
-      </p>
 
-      <h3>Case-insensitive matching, preserved exactly</h3>
-      <p>
-        On the office database, searching for <code>ADMIN</code>, <code>admin</code> or
-        <code>Admin</code> returns the same result, because SQL Server ignores letter case
-        by default. PostgreSQL does not. Left unaddressed, a manager searching by status or
-        name would quietly get fewer results than before, with no error to signal it.
-      </p>
-      <p>
-        This was fixed at the foundation rather than patched search by search:
-        <strong>39 columns</strong> (the status, role and name fields, among others) now use
-        a case-insensitive column type, so the database itself treats case the way the office
-        always has. It even continues to reject a duplicate <code>Admin</code> next to an
-        existing <code>admin</code>, exactly as before.
-      </p>
-
-      <h3>The spreadsheet sync, rewritten in step</h3>
-      <p>
-        A separate routine keeps the system in step with Google Sheets and talked to SQL
-        Server directly, bypassing the rest of the application. It was ported alongside
-        everything else, so the nightly sync behaves identically on the new engine.
-      </p>
-    </div>
+    <ul class="checks">
+      <li><span class="ck">1</span><span class="tx"><b>Database changes are applied first,</b> by a migration tool that records what it has already run, so the same change is never applied twice and the order is never in doubt.</span></li>
+      <li><span class="ck">2</span><span class="tx"><b>The API is rebuilt and released,</b> and the pipeline waits for AWS to confirm the new version is live before it continues.</span></li>
+      <li><span class="ck">3</span><span class="tx"><b>The web interface is published</b> and the cache is cleared, so nobody is left looking at yesterday's version.</span></li>
+      <li><span class="ck">4</span><span class="tx"><b>Only what changed is deployed.</b> A change to the web interface alone does not rebuild the API or touch the database.</span></li>
+    </ul>
 
     <div class="note measure">
-      <span class="lbl">A note on method</span>
-      Rather than reason about what <b>might</b> break, a local copy of PostgreSQL was loaded
-      with the real 27,600 rows and every screen was exercised against it. That turned
-      guesswork into a concrete list of issues to fix, and it is how subtle differences (a
-      search returning too few rows, results sorted in a different order) were caught before
-      the client ever saw them.
-    </div>
-  </section>
-
-  <section>
-    <h2>How it runs now</h2>
-    <p class="sub">The application no longer needs a hand-built machine. It runs the same way on any Windows or Mac computer.</p>
-    <div class="measure">
       <p>
-        Everything the application needs, the database, the interface and the web server,
-        is packaged together with <strong>Docker</strong>. Once Docker Desktop is installed,
-        the whole system starts with one line:
-      </p>
-    </div>
-    <div class="cmd measure"><span class="p">$</span> docker compose up -d</div>
-    <div class="measure">
-      <p>
-        The database builds its own structure on first start, the interface appears in a
-        browser, and there is nothing to configure by hand. A short, illustrated guide covers
-        installing Docker Desktop and running these steps on both Windows and Mac. A second
-        command loads a live copy of the real data from the cloud whenever a working set is
-        needed.
+        <b>No passwords are stored in the pipeline.</b> It authenticates to AWS with short-lived
+        credentials issued for each individual run and expiring immediately afterwards. There is
+        no long-lived key that could be copied out of the repository, and nothing to rotate.
       </p>
     </div>
   </section>
 
   <section>
-    <h2>Verified, not assumed</h2>
-    <p class="sub">Phase 2 was signed off against a real cloud database, not a developer's guess. Each of these was checked directly.</p>
+    <h2>What this removes</h2>
+    <p class="sub">Five things tied ABG Hub to that specific PC. Phase 3 addresses the ones that stood between the application and a server.</p>
     <ul class="checks">
-      <li><span class="ck">&#10003;</span><span class="tx"><b>All 76 read endpoints</b> return correctly against PostgreSQL on AWS RDS.</span></li>
-      <li><span class="ck">&#10003;</span><span class="tx"><b>The full database structure</b> (33 tables) builds itself on a fresh start.</span></li>
-      <li><span class="ck">&#10003;</span><span class="tx"><b>Reports keep their exact spreadsheet headings</b> and their <code>MM/DD/YYYY</code> dates.</span></li>
-      <li><span class="ck">&#10003;</span><span class="tx"><b>Every store still reconciles:</b> 1,094 and 1,832 vendor rows account for all 2,926 stores.</span></li>
-      <li><span class="ck">&#10003;</span><span class="tx"><b>Case-insensitive search</b> returns what the office expects, confirmed against the old behaviour.</span></li>
-      <li><span class="ck">&#10003;</span><span class="tx"><b>A clean start on a bare machine</b> was rehearsed end to end: database, interface and web app all came up from nothing.</span></li>
+      <li><span class="ck">&#10003;</span><span class="tx"><b>Uploaded files no longer live on a desktop.</b> Photos, signatures, attachments and PDFs are in cloud storage, backed up and reachable from anywhere.</span></li>
+      <li><span class="ck">&#10003;</span><span class="tx"><b>The application no longer needs Windows.</b> It runs on Linux in AWS, which is what made a serverless deployment possible at all.</span></li>
+      <li><span class="ck">&#10003;</span><span class="tx"><b>Releasing no longer happens on the office machine.</b> It happens in the repository, with a record of who released what and when.</span></li>
+      <li><span class="ck">&#10003;</span><span class="tx"><b>The spreadsheet sync no longer depends on one person's browser sign-in,</b> having been moved onto credentials that belong to the organisation rather than to a machine.</span></li>
     </ul>
-    <h3>A safety net for what comes next</h3>
     <div class="measure">
       <p>
-        A new suite of <strong>94 automated tests</strong> now runs every database statement
-        against a real PostgreSQL server, on every change. Its job is to catch any SQL Server
-        assumption that slips back in before it can reach the client. It was proven to work by
-        deliberately reintroducing an old pattern and watching the tests fail.
+        The office PC stays exactly as it is, untouched, as a fallback. Nothing about this phase
+        required switching it off, and nothing was removed from it.
       </p>
     </div>
   </section>
 
   <section class="measure">
-    <h2>What Phase 2 left for later</h2>
-    <p class="sub">One item was deliberately staged for the phase that followed.</p>
+    <h2>What Phase 3 left for later</h2>
     <p>
-      At the end of this phase the application was ready to run in the cloud, but it was
-      still started by hand and still kept uploaded files (photos, signatures, PDFs) on local
-      disk. <strong>Phase 3</strong> gave it a permanent home on AWS, moved those files to
-      cloud storage, and replaced the last few things that only a Windows office PC could do,
-      chiefly the weekly report emails. The office PC was left untouched as a fallback for a
-      full working cycle before it was retired.
+      The system was in AWS and working, but two things were deliberately left until the account
+      matured. The first time the system was used after a quiet period it took a few seconds to
+      wake, because AWS had capped how much processing power the account could request. The second
+      was the public web address: the Hub was reachable at an AWS-provided address, with the
+      permanent one still to come.
     </p>
     <p>
-      Every phase stayed reversible until that last step, so at no point before the cutover
-      could the office system not simply carry on.
+      Both were dealt with in the phases that followed, along with the work that turned the
+      deployed system into the CRM the office uses day to day.
     </p>
   </section>
 
   <div class="pager">
-    <a class="prev" href="../cloud-migration-plan/">
+    <a class="prev" href="../application-postgres/">
       <span class="dir">&larr; Previous phase</span>
-      <span class="lbl2">Database Migration to AWS</span>
+      <span class="lbl2">Application Migration to PostgreSQL</span>
     </a>
-    <a class="next" href="../aws-deployment/">
+    <a class="next" href="../crm-hub-launch/">
       <span class="dir">Next phase &rarr;</span>
-      <span class="lbl2">Application Deployment to AWS</span>
+      <span class="lbl2">CRM Hub Launch</span>
     </a>
   </div>
 

@@ -4,55 +4,571 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>ABG Hub Documents</title>
+<meta name="description" content="ABG Hub cloud deployment: the complete record of what was delivered across six phases, from one office PC to a system ABG owns and runs itself.">
+<meta name="color-scheme" content="light dark">
+<title>ABG Hub &middot; Delivery Record</title>
 <style>
-  :root { color-scheme: light dark; }
-  body {
-    margin: 0; padding: 72px 24px;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    line-height: 1.6; background: #f4f6f6; color: #141d24;
+  /* Shared house style, identical on every page. */
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body, h1, h2, h3, h4, p, ul, ol, li, figure, table { margin: 0; }
+  ul, ol { padding: 0; }
+
+  :root {
+    --bg:#f6f7f7; --surface:#ffffff;
+    --ink:#16202a; --ink-2:#44545f; --ink-3:#74838d;
+    --rule:#e2e7e8; --rule-2:#cfd7d9;
+    --accent:#0f766e; --accent-ink:#0b5a53; --accent-soft:#e6f1ef;
+    --font-display:"Iowan Old Style","Palatino Linotype",Palatino,Charter,Georgia,serif;
+    --font-body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --font-mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
   }
   @media (prefers-color-scheme: dark) {
-    body { background: #0d1317; color: #e7eef2; }
-    a { color: #6cebdd; }
-    .eyebrow { color: #6cebdd; }
-    li { border-color: #22303a; }
-    .done { color: #6cebdd; border-color: #35d6c3; background: #102321; }
+    :root:not([data-theme="light"]) {
+      --bg:#0e1418; --surface:#151e24;
+      --ink:#e8eef2; --ink-2:#b2bfc8; --ink-3:#8594a0;
+      --rule:#233039; --rule-2:#33434e;
+      --accent:#35d6c3; --accent-ink:#6cebdd; --accent-soft:#11241f;
+    }
   }
-  main { max-width: 620px; margin: 0 auto; }
+
+  body {
+    background:var(--bg); color:var(--ink);
+    font-family:var(--font-body); font-size:16.5px; line-height:1.65;
+    -webkit-font-smoothing:antialiased; padding:0 24px 96px;
+  }
+  .wrap { max-width:760px; margin:0 auto; }
+  p, li { color:var(--ink-2); }
+  strong, b { color:var(--ink); font-weight:600; }
+  a { color:var(--accent-ink); }
+
+  /* ── Masthead ──────────────────────────────────────────────────────────── */
+  header.masthead { padding:56px 0 34px; border-bottom:1px solid var(--rule-2); }
   .eyebrow {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: #0b5a53; margin-bottom: 14px;
+    font-family:var(--font-mono); font-size:11.5px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--accent-ink); margin-bottom:18px;
   }
-  h1 { font-size: 28px; margin: 0 0 28px; font-weight: 600; }
-  ul { list-style: none; padding: 0; margin: 0; }
-  li { padding: 18px 0; border-top: 1px solid #e0e6e7; }
-  a { font-size: 17px; font-weight: 600; text-decoration: none; color: #0b5a53; }
-  a:hover, a:focus-visible { text-decoration: underline; }
-  p { margin: 4px 0 0; font-size: 14.5px; opacity: 0.75; }
-  .done {
-    display: inline-block; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
-    color: #0b5a53; border: 1px solid #0f766e; background: #e3f0ee;
-    border-radius: 999px; padding: 2px 8px; margin-left: 8px; vertical-align: 2px;
+  h1 {
+    font-family:var(--font-display); font-size:clamp(31px,5vw,46px);
+    line-height:1.12; font-weight:600; letter-spacing:-.015em; color:var(--ink);
+  }
+  .lede { font-size:18.5px; line-height:1.6; color:var(--ink-2); margin-top:20px; }
+  .lede + .lede { margin-top:14px; }
+  .meta {
+    display:flex; flex-wrap:wrap; gap:0 34px; margin-top:30px;
+    font-family:var(--font-mono); font-size:12px; color:var(--ink-3);
+  }
+  .meta span { display:block; padding:6px 0; }
+  .meta b { display:block; color:var(--ink); font-weight:500; margin-top:2px; }
+
+  /* ── Sections ──────────────────────────────────────────────────────────── */
+  section { padding:44px 0 0; }
+  h2 {
+    font-family:var(--font-display); font-size:25px; font-weight:600;
+    letter-spacing:-.01em; color:var(--ink); margin-bottom:6px;
+  }
+  .sub { color:var(--ink-3); font-size:14.5px; margin-bottom:20px; }
+  h2 + p, h2 + ul, h2 + .figures, h2 + table { margin-top:16px; }
+  p + p { margin-top:13px; }
+  h3 { font-size:15.5px; font-weight:600; color:var(--ink); margin:26px 0 8px; }
+
+  /* ── Figures ───────────────────────────────────────────────────────────── */
+  .figures { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); border-top:1px solid var(--rule); }
+  .fig { padding:16px 18px 16px 0; border-bottom:1px solid var(--rule); }
+  .fig .v { font-family:var(--font-display); font-size:26px; line-height:1.05; color:var(--ink); }
+  .fig .v small { font-size:13.5px; color:var(--ink-3); font-family:var(--font-body); }
+  .fig .k { font-family:var(--font-mono); font-size:11.5px; letter-spacing:.03em; color:var(--ink-3); margin-top:7px; }
+
+  /* ── Phase entries ─────────────────────────────────────────────────────── */
+  ol.phases { list-style:none; margin-top:10px; }
+  ol.phases > li { border-top:1px solid var(--rule); padding:22px 0; }
+  ol.phases > li:last-child { border-bottom:1px solid var(--rule); }
+  .ph-head { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  .ph-n {
+    font-family:var(--font-mono); font-size:11.5px; letter-spacing:.08em;
+    color:var(--accent-ink); text-transform:uppercase;
+  }
+  .ph-title { font-family:var(--font-display); font-size:19.5px; font-weight:600; color:var(--ink); }
+  /* The title is the way through to the phase's own page, so it reads as a link. */
+  .ph-title a { color:var(--accent-ink); text-decoration:underline; text-underline-offset:4px; text-decoration-thickness:1px; }
+  .ph-title a:hover { text-decoration-thickness:2px; }
+  .tag {
+    font-family:var(--font-mono); font-size:10px; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--accent-ink); border:1px solid var(--accent); background:var(--accent-soft);
+    border-radius:999px; padding:2px 9px;
+  }
+  .ph-body { margin-top:9px; font-size:15.5px; }
+  .ph-list { list-style:none; margin-top:11px; }
+  .ph-list li { position:relative; padding-left:17px; font-size:14.5px; margin-top:5px; }
+  .ph-list li::before { content:""; position:absolute; left:2px; top:.62em; width:5px; height:5px; border-radius:50%; background:var(--accent); opacity:.55; }
+  .ph-evidence { font-family:var(--font-mono); font-size:11.5px; color:var(--ink-3); margin-top:12px; }
+
+  /* Each phase has a page of its own, so the way through is made obvious. */
+  .ph-more {
+    display:inline-flex; align-items:center; gap:9px; margin-top:15px;
+    font-size:14px; font-weight:600; color:var(--accent-ink); text-decoration:none;
+    border:1px solid var(--accent); background:var(--accent-soft);
+    border-radius:999px; padding:9px 17px; line-height:1.2;
+  }
+  .ph-more:hover { background:var(--accent); color:#ffffff; }
+  .ph-more .arw { font-size:15px; transition:transform .15s; }
+  .ph-more:hover .arw { transform:translateX(3px); }
+
+  /* ── Table ─────────────────────────────────────────────────────────────── */
+  table { border-collapse:collapse; width:100%; font-size:14px; }
+  th, td { text-align:left; padding:10px 12px 10px 0; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th { font-family:var(--font-mono); font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-3); font-weight:500; }
+  td { color:var(--ink-2); }
+  td b { color:var(--ink); }
+
+  /* ── Note ──────────────────────────────────────────────────────────────── */
+  .note { border-left:2px solid var(--accent); background:var(--surface); padding:16px 20px; margin-top:20px; font-size:14.5px; border-radius:0 8px 8px 0; }
+  .note p { color:var(--ink-2); }
+
+  /* ── Toolbar ───────────────────────────────────────────────────────────── */
+  .toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-top:26px; }
+  .btn {
+    font-family:var(--font-body); font-size:13.5px; font-weight:500;
+    color:var(--ink); background:var(--surface); border:1px solid var(--rule-2);
+    border-radius:8px; padding:9px 15px; cursor:pointer; text-decoration:none;
+    display:inline-flex; align-items:center; gap:8px; line-height:1.2;
+  }
+  .btn:hover { border-color:var(--accent); color:var(--accent-ink); }
+  .btn .g { color:var(--accent); font-size:14px; }
+
+  footer { margin-top:52px; padding-top:22px; border-top:1px solid var(--rule); font-family:var(--font-mono); font-size:11.5px; color:var(--ink-3); }
+
+  @media (max-width:560px) {
+    body { padding:0 18px 64px; font-size:16px; }
+    header.masthead { padding:40px 0 30px; }
+    .lede { font-size:17.5px; }
+    section { padding:36px 0 0; }
+    .meta { display:grid; grid-template-columns:1fr 1fr; gap:14px 18px; }
+    .fig { padding:14px 14px 14px 0; }
+    .tag { font-size:11px; padding:2px 9px; }
+    .ph-body { font-size:15px; }
+
+    /* Full-width buttons give a thumb something to land on. */
+    .toolbar { gap:8px; }
+    .btn { flex:1 1 100%; justify-content:center; padding:13px 16px; font-size:14.5px; }
+
+    /* The delivery table reads as a stack of entries on a phone. */
+    table.record, table.record tbody, table.record tr, table.record td { display:block; width:100%; }
+    table.record thead { display:none; }
+    table.record tr { padding:15px 0; border-bottom:1px solid var(--rule); }
+    table.record tbody tr:first-child { border-top:1px solid var(--rule); }
+    table.record td { border:0; padding:0; }
+    table.record td + td { margin-top:6px; }
+    table.record td:first-child { font-size:16px; color:var(--ink); font-weight:600; }
+    table.record td[data-label]::before {
+      content:attr(data-label); display:block; font-family:var(--font-mono);
+      font-size:10.5px; letter-spacing:.07em; text-transform:uppercase;
+      color:var(--ink-3); margin-bottom:2px;
+    }
+  }
+  /* The six phase pages are pulled in here for printing, so a PDF holds everything. */
+  #fullpages { display:none; }
+
+  @media print {
+    body { background:#fff; color:#000; padding:0; font-size:11pt; }
+    [data-noexport], footer { display:none; }
+    section { page-break-inside:avoid; }
+    .meta { display:flex; }
+
+    #fullpages { display:block; }
+    .imported { page-break-before:always; }
+    .imported .measure, .imported .wrap { max-width:none; }
+    .imported h1 { font-size:20pt; margin:0 0 10px; }
+    .imported h2 { font-size:13.5pt; margin:16px 0 5px; }
+    .imported h3 { font-size:11.5pt; margin:12px 0 4px; }
+    .imported ul { padding-left:18px; margin:8px 0 0; }
+    .imported .panel { border:1px solid #ddd; padding:10px 12px; margin:10px 0; }
+    .imported .specs, .imported .stats { display:block; }
+    .imported .spec dt { font-size:9pt; color:#555; margin-top:7px; text-transform:uppercase; }
+    .imported .spec dd { margin:0 0 3px; }
+    .imported .stat { margin:0 0 7px; }
+    .imported .stat .v { font-size:13pt; font-weight:600; }
+    .imported .stat .k { font-size:9pt; color:#555; }
+    .imported .checks { list-style:none; padding:0; }
+    .imported .checks li { margin:5px 0; }
+    .imported .callout { border-left:2px solid #0f766e; padding-left:11px; margin:10px 0; }
+    .imported .note { border-left:2px solid #888; background:none; padding:6px 0 6px 11px; margin:10px 0; }
+    .imported .cmd { font-family:monospace; font-size:9pt; background:#f3f3f3; padding:7px 9px; margin:8px 0; }
+    .imported .pill, .imported .tag { font-size:9pt; color:#0b5a53; }
+    .imported .status-row { margin:8px 0 0; }
+    .imported .phase-title { font-weight:600; }
+    .imported .phase-who { font-size:9pt; color:#555; }
+    .imported .footnote { font-size:9pt; color:#555; margin-top:12px; }
+    .imported table { width:100%; min-width:0; border-collapse:collapse; font-size:9.5pt; }
+    .imported th, .imported td { border-bottom:1px solid #ddd; padding:6px 8px 6px 0; text-align:left; }
+    /* A printed page is wide, so the table prints as a table even from a phone. */
+    table.record { display:table; width:100%; }
+    table.record thead { display:table-header-group; }
+    table.record tbody { display:table-row-group; }
+    table.record tr { display:table-row; padding:0; border:0; }
+    table.record td { display:table-cell; width:auto; font-size:inherit; font-weight:normal;
+      margin:0; padding:10px 12px 10px 0; border-bottom:1px solid var(--rule); }
+    table.record td:first-child { font-weight:normal; }
+    table.record td + td { margin-top:0; }
+    table.record td[data-label]::before { content:none; }
   }
 </style>
 </head>
 <body>
-<main>
-  <div class="eyebrow">ABG Hub &middot; Cloud Deployment</div>
-  <h1>Documents</h1>
-  <ul>
-    <li>
-      <a href="cloud-migration-plan/">Phase 1 &mdash; Database Migration to AWS</a><span class="done">Complete</span>
-      <p>Moving the database from the office SQL Server to PostgreSQL on AWS RDS.</p>
-    </li>
-    <li>
-      <a href="application-postgres/">Phase 2 &mdash; Application Migration to PostgreSQL</a><span class="done">Complete</span>
-      <p>Porting the application off SQL Server, and packaging it to run on any machine with Docker.</p>
-    </li>
-  </ul>
-</main>
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow">ABG Hub &middot; Cloud Deployment</div>
+    <h1>Delivery Record</h1>
+    <p class="lede">
+      ABG Hub used to run entirely on one Windows PC in the office: the application, the
+      database and every uploaded file. If that machine was asleep, the business had no
+      system. The public website belonged to an outside website builder, on hosting and a
+      domain the company did not control.
+    </p>
+    <p class="lede">
+      Both now run in ABG's own AWS account. Staff reach the Hub from anywhere, updates
+      deploy themselves, and the website can be edited by an administrator without a
+      developer. Nothing was lost in the move, and staff were never without the system.
+    </p>
+    <div class="meta">
+      <span>Prepared by<b>Rohan Dahal</b></span>
+      <span>Period<b>August to September 2026</b></span>
+      <span>Phases<b>Six, all complete</b></span>
+      <span>Status<b>Delivered</b></span>
+    </div>
+    <div class="toolbar" data-noexport>
+      <button class="btn" type="button" id="dl"><span class="g">&#8681;</span> Download as Word document</button>
+      <button class="btn" type="button" id="pr"><span class="g">&#9113;</span> Print or save as PDF</button>
+    </div>
+  </header>
+
+  <section>
+    <h2>At a glance</h2>
+    <div class="figures">
+      <div class="fig"><div class="v">6</div><div class="k">phases, all complete</div></div>
+      <div class="fig"><div class="v">2<small> systems</small></div><div class="k">Hub and website</div></div>
+      <div class="fig"><div class="v">0</div><div class="k">reliance on the office PC</div></div>
+      <div class="fig"><div class="v">0<small> hrs</small></div><div class="k">staff downtime</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What was delivered</h2>
+    <p class="sub">A summary of each phase. Click the button at the end of each one to read it in full.</p>
+
+    <ol class="phases">
+      <li>
+        <div class="ph-head">
+          <span class="ph-n">Phase 1</span>
+          <span class="ph-title"><a href="cloud-migration-plan/">Database Migration to AWS</a></span>
+          <span class="tag">Complete</span>
+        </div>
+        <p class="ph-body">
+          The company's data moved from the SQL Server on the office PC to a managed
+          PostgreSQL database on AWS, where it is backed up and reachable from anywhere.
+        </p>
+        <ul class="ph-list">
+          <li>A purpose-built copying tool that checks its own work, comparing every table's row count and every link between tables before it reports success.</li>
+          <li>27,580 records across 33 tables carried across, and independently confirmed afterwards.</li>
+          <li>Database hosting at roughly $14 a month, against about $400 a month for the equivalent on the old engine.</li>
+        </ul>
+        <div class="ph-evidence">12 August 2026 &middot; run by the client from the office &middot; verified remotely</div>
+        <a class="ph-more" data-noexport href="cloud-migration-plan/">Read the full Phase 1 <span class="arw">&rarr;</span></a>
+      </li>
+
+      <li>
+        <div class="ph-head">
+          <span class="ph-n">Phase 2</span>
+          <span class="ph-title"><a href="application-postgres/">Application Migration to PostgreSQL</a></span>
+          <span class="tag">Complete</span>
+        </div>
+        <p class="ph-body">
+          The application itself was rewritten to speak to the new database, and packaged so
+          it starts on any computer with a single command rather than only on the office PC.
+        </p>
+        <ul class="ph-list">
+          <li>Around 50 places in the code that assumed the old database were reworked. Searching still ignores capital letters the way the office expects.</li>
+          <li>All 76 places the system reads data were checked against the live cloud database.</li>
+          <li>94 automated tests were added. They run against a real database every time the code changes, so an old assumption cannot creep back in unnoticed.</li>
+        </ul>
+        <div class="ph-evidence">13 August to 1 September 2026 &middot; no change visible to staff</div>
+        <a class="ph-more" data-noexport href="application-postgres/">Read the full Phase 2 <span class="arw">&rarr;</span></a>
+      </li>
+
+      <li>
+        <div class="ph-head">
+          <span class="ph-n">Phase 3</span>
+          <span class="ph-title"><a href="aws-deployment/">Application Deployment to AWS</a></span>
+          <span class="tag">Complete</span>
+        </div>
+        <p class="ph-body">
+          The Hub left the office PC. It now runs in AWS with no server for anyone to
+          maintain, and a change reaches production by being published rather than by
+          somebody being at a particular desk.
+        </p>
+        <ul class="ph-list">
+          <li>The application runs on demand and costs nothing while nobody is using it.</li>
+          <li>Photos, signatures, attachments and generated PDFs moved from a desktop hard drive into cloud storage.</li>
+          <li>Releasing became a repeatable process that runs in the same order every time, and only updates the parts that actually changed.</li>
+          <li>The release process holds no passwords. It is given temporary access each time it runs, and that access expires straight afterwards, so there is nothing stored that could be copied.</li>
+        </ul>
+        <div class="ph-evidence">10 September 2026 &middot; office PC left untouched as a fallback</div>
+        <a class="ph-more" data-noexport href="aws-deployment/">Read the full Phase 3 <span class="arw">&rarr;</span></a>
+      </li>
+
+      <li>
+        <div class="ph-head">
+          <span class="ph-n">Phase 4</span>
+          <span class="ph-title"><a href="crm-hub-launch/">CRM Hub Launch</a></span>
+          <span class="tag">Complete</span>
+        </div>
+        <p class="ph-body">
+          With the system in the cloud, what it could not yet do became the limit. This phase
+          turned it into the CRM the office uses daily.
+        </p>
+        <ul class="ph-list">
+          <li>People are invited by email and set their own password from a link valid for seven days. Nobody handles anybody else's password, and invitations can be revoked or reissued.</li>
+          <li>Weekly report drafts are created directly in a Microsoft 365 mailbox. This removed the last reason the system needed a Windows machine with Outlook installed.</li>
+          <li>The dashboard was rebuilt around what needs attention today, with charts drawn from what the team actually recorded and a running list of recent activity.</li>
+          <li>Task handling was reworked with due dates and clearer statuses. The whole interface was refreshed at the same time, including a sidebar that works on a phone.</li>
+        </ul>
+        <div class="ph-evidence">13 to 17 September 2026 &middot; delivered as one reviewed change &middot; 77 automated checks passed</div>
+        <a class="ph-more" data-noexport href="crm-hub-launch/">Read the full Phase 4 <span class="arw">&rarr;</span></a>
+      </li>
+
+      <li>
+        <div class="ph-head">
+          <span class="ph-n">Phase 5</span>
+          <span class="ph-title"><a href="website-move/">The Website Moves to AWS</a></span>
+          <span class="tag">Complete</span>
+        </div>
+        <p class="ph-body">
+          The public website looked like a company asset but was not one. It was produced by
+          an outside builder, hosted on their infrastructure, with the domain administered
+          from an account nobody at ABG could sign in to. This phase brought all of it under
+          company ownership.
+        </p>
+        <ul class="ph-list">
+          <li>A faithful copy of the live site was captured and published to ABG's own storage, delivered through AWS's global network. Visitors saw no change, which was the intention.</li>
+          <li>The domain settings moved to a service the company controls. The old settings were written down first, so they could be put back exactly if anything went wrong.</li>
+          <li>Email was protected throughout. The records that route and authenticate company mail were identified in advance, checked after the move, and confirmed by querying the public record independently.</li>
+          <li>Search visibility carried across: the same addresses, titles and descriptions, with the site map kept current automatically.</li>
+        </ul>
+        <div class="ph-evidence">12 to 22 September 2026 &middot; no site downtime &middot; no interruption to mail</div>
+        <a class="ph-more" data-noexport href="website-move/">Read the full Phase 5 <span class="arw">&rarr;</span></a>
+      </li>
+
+      <li>
+        <div class="ph-head">
+          <span class="ph-n">Phase 6</span>
+          <span class="ph-title"><a href="website-studio/">Website Studio</a></span>
+          <span class="tag">Complete</span>
+        </div>
+        <p class="ph-body">
+          Owning the website is not the same as being able to change it. Website Studio puts
+          the public site inside ABG Hub, so an administrator can edit it and publish it
+          without a developer.
+        </p>
+        <ul class="ph-list">
+          <li>Edit a page in the Hub with a live preview of the real page beside it.</li>
+          <li>Publishing first puts the change on a private copy of the site that the public cannot find and search engines ignore. Only a reviewed version can go to the live site.</li>
+          <li>The last five published versions are kept in full, so going back is immediate rather than a reconstruction, and the editor returns with it.</li>
+          <li>Pictures upload straight from the browser, and the Studio reports any search wording that did not follow a change rather than leaving it stale and unmentioned.</li>
+        </ul>
+        <div class="ph-evidence">22 September 2026 &middot; open for the client's team to review</div>
+        <a class="ph-more" data-noexport href="website-studio/">Read the full Phase 6 <span class="arw">&rarr;</span></a>
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>What ABG owns now</h2>
+    <p>
+      The application, the database, the uploaded files, the public website, the domain and
+      the process that deploys all of it sit in accounts the company controls. Nothing depends
+      on a single machine, a single person, or an outside supplier. The office PC was left
+      exactly as it was throughout, untouched, as a fallback that was never needed.
+    </p>
+    <div class="note">
+      <p>
+        <b>One item remains open, and it is waiting on AWS rather than on work.</b> The delivery
+        network in front of the website runs in a supplier account, because AWS had not yet
+        cleared ABG's own account for that service when it was needed. Moving it across is a
+        documented, contained change. It is worth following up with AWS support periodically,
+        as the restriction lifts with account history rather than on request.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Record of delivery</h2>
+    <p class="sub">How each phase was delivered and what evidence exists for it.</p>
+    <table class="record">
+      <thead>
+        <tr><th>Phase</th><th>Dates</th><th>Delivered as</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><b>1</b> Database Migration</td><td data-label="Dates">12 Aug 2026</td><td data-label="Delivered as">Migration tooling, run by the client, verified remotely</td></tr>
+        <tr><td><b>2</b> Application Migration</td><td data-label="Dates">13 Aug to 1 Sep 2026</td><td data-label="Delivered as">Published changes, with an automated test suite</td></tr>
+        <tr><td><b>3</b> Deployment to AWS</td><td data-label="Dates">10 Sep 2026</td><td data-label="Delivered as">Published changes, plus the deployment pipeline itself</td></tr>
+        <tr><td><b>4</b> CRM Hub Launch</td><td data-label="Dates">13 to 17 Sep 2026</td><td data-label="Delivered as">One reviewed change, approved by the client's team</td></tr>
+        <tr><td><b>5</b> Website Move</td><td data-label="Dates">12 to 22 Sep 2026</td><td data-label="Delivered as">Hosting and domain work, confirmed by independent public checks</td></tr>
+        <tr><td><b>6</b> Website Studio</td><td data-label="Dates">22 Sep 2026</td><td data-label="Delivered as">One change, open for review</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Every change is recorded in the company's own code store, with the date and who made it.
+      The release process keeps its own log of what went live and when. This page summarises
+      that record rather than replacing it.
+    </p>
+  </section>
+
+  <footer>
+    ABG Hub &middot; Cloud Deployment &middot; Prepared by Rohan Dahal &middot; September 2026
+  </footer>
+
+</div>
+
+<div id="fullpages"></div>
+
+<script>
+  var PHASES = [
+    "cloud-migration-plan/",
+    "application-postgres/",
+    "aws-deployment/",
+    "crm-hub-launch/",
+    "website-move/",
+    "website-studio/"
+  ];
+
+  // Anything that only makes sense while clicking around the site.
+  var DROP = ".topbar, .pager, .swipe, [data-noexport]";
+
+  function flatten(root, doc) {
+    root.querySelectorAll(DROP).forEach(function (n) { n.remove(); });
+    // A link in a downloaded file points nowhere useful, so keep the words only.
+    root.querySelectorAll("a").forEach(function (a) {
+      a.replaceWith(doc.createTextNode(a.textContent));
+    });
+    // The sideways scroller is a screen device; a page has room for the whole table.
+    root.querySelectorAll(".scroll").forEach(function (s) {
+      var kids = Array.prototype.slice.call(s.childNodes);
+      s.replaceWith.apply(s, kids);
+    });
+    return root;
+  }
+
+  var cache = null;
+  function loadPhases() {
+    if (cache) { return Promise.resolve(cache); }
+    return Promise.all(PHASES.map(function (dir) {
+      return fetch(dir, { credentials: "same-origin" })
+        .then(function (r) {
+          if (!r.ok) { throw new Error(dir + " returned " + r.status); }
+          return r.text();
+        })
+        .then(function (html) {
+          var doc = new DOMParser().parseFromString(html, "text/html");
+          var wrap = doc.querySelector(".wrap");
+          return flatten(wrap, doc).innerHTML;
+        });
+    })).then(function (list) { cache = list; return list; });
+  }
+
+  function summaryHtml() {
+    var src = document.querySelector(".wrap").cloneNode(true);
+    return flatten(src, document).innerHTML;
+  }
+
+  function busy(btn, on, label) {
+    btn.disabled = on;
+    if (on) {
+      btn.dataset.label = btn.innerHTML;
+      btn.textContent = label;
+    } else if (btn.dataset.label) {
+      btn.innerHTML = btn.dataset.label;
+    }
+  }
+
+  function failed(btn, err) {
+    busy(btn, false);
+    window.alert(
+      "The full record could not be assembled: " + err.message +
+      "\nThis needs the page to be open over the web rather than from a saved copy."
+    );
+  }
+
+  // ── Print or save as PDF: pull every phase page in, then hand over to the browser.
+  var pr = document.getElementById("pr");
+  pr.addEventListener("click", function () {
+    var host = document.getElementById("fullpages");
+    if (host.dataset.filled === "1") { window.print(); return; }
+    busy(pr, true, "Gathering all six pages...");
+    loadPhases().then(function (list) {
+      host.innerHTML = list.map(function (h) {
+        return '<div class="imported">' + h + "</div>";
+      }).join("");
+      host.dataset.filled = "1";
+      busy(pr, false);
+      window.print();
+    }).catch(function (e) { failed(pr, e); });
+  });
+
+  // ── Download as Word: one file holding the summary and all six phase pages.
+  var dl = document.getElementById("dl");
+  dl.addEventListener("click", function () {
+    busy(dl, true, "Gathering all six pages...");
+    loadPhases().then(function (list) {
+      var styles =
+        "body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#1a1a1a;line-height:1.5;}" +
+        "h1{font-size:22pt;margin:0 0 10pt;}h2{font-size:14pt;margin:20pt 0 6pt;border-bottom:1pt solid #cccccc;padding-bottom:3pt;}" +
+        "h3{font-size:11.5pt;margin:12pt 0 4pt;}" +
+        ".eyebrow{font-size:9pt;letter-spacing:1pt;color:#0b5a53;margin-bottom:6pt;}" +
+        ".lede{font-size:12pt;margin:0 0 8pt;}.sub{color:#666666;font-size:10pt;}" +
+        ".ph-head{margin-top:14pt;}.ph-n{font-size:9pt;color:#0b5a53;letter-spacing:1pt;}" +
+        ".ph-title{font-size:13pt;font-weight:bold;}.tag{font-size:8pt;color:#0b5a53;}" +
+        ".ph-body{margin:4pt 0;}.ph-list{margin:4pt 0 0 14pt;}.ph-list li{margin:2pt 0;}" +
+        ".ph-evidence{font-size:9pt;color:#666666;margin-top:5pt;}" +
+        ".fig{margin:0 0 6pt;}.fig .v{font-size:16pt;font-weight:bold;}.fig .k{font-size:9pt;color:#666666;}" +
+        ".note{border-left:3pt solid #0f766e;padding-left:10pt;margin:10pt 0;}" +
+        "table{border-collapse:collapse;width:100%;font-size:10pt;}" +
+        "th,td{text-align:left;padding:5pt;border-bottom:1pt solid #dddddd;}" +
+        "th{font-size:9pt;letter-spacing:1pt;color:#666666;}" +
+        ".meta span{display:block;font-size:10pt;color:#666666;margin-bottom:2pt;}" +
+        "footer{margin-top:18pt;padding-top:8pt;border-top:1pt solid #dddddd;font-size:9pt;color:#666666;}" +
+        ".panel{border:1pt solid #dddddd;padding:8pt 10pt;margin:8pt 0;}" +
+        ".spec dt{font-size:9pt;color:#666666;margin-top:6pt;}.spec dd{margin:0 0 3pt;font-size:10.5pt;}" +
+        ".stat{margin:0 0 6pt;}.stat .v{font-size:14pt;font-weight:bold;}.stat .k{font-size:9pt;color:#666666;}" +
+        ".checks{margin:6pt 0 0 0;}.checks li{margin:3pt 0;}" +
+        ".callout{border-left:3pt solid #0f766e;padding-left:10pt;margin:8pt 0;}" +
+        ".cmd{font-family:Consolas,monospace;font-size:9.5pt;background:#f2f2f2;padding:6pt;margin:6pt 0;}" +
+        "code{font-family:Consolas,monospace;font-size:9.5pt;}" +
+        ".pill{font-size:9pt;color:#0b5a53;}.phase-title{font-weight:bold;}" +
+        ".phase-who{font-size:9pt;color:#666666;}.phase-body{font-size:10.5pt;}" +
+        ".footnote{font-size:9pt;color:#666666;margin-top:10pt;}";
+
+      var brk = "<div style='page-break-before:always'></div>";
+      var body = summaryHtml() + list.map(function (h) { return brk + h; }).join("");
+
+      var html =
+        "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
+        "xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>" +
+        "<head><meta charset='utf-8'><title>ABG Hub Delivery Record</title>" +
+        "<style>" + styles + "</style></head><body>" + body + "</body></html>";
+
+      var blob = new Blob(["﻿", html], { type: "application/msword" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "ABG-Hub-Delivery-Record.doc";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      busy(dl, false);
+    }).catch(function (e) { failed(dl, e); });
+  });
+</script>
 </body>
 </html>

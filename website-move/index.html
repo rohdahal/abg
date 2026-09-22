@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<meta name="description" content="Phase 2 of the ABG Hub cloud deployment: porting the application from SQL Server to PostgreSQL and packaging it to run on any machine with Docker.">
+<meta name="description" content="Phase 5 of the ABG Hub cloud deployment: taking the public website off an outside builder and onto ABG's own hosting and domain.">
 <meta name="color-scheme" content="light dark">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
@@ -13,7 +13,7 @@
   ul, ol { padding: 0; }
   img, svg { display: block; max-width: 100%; }
 </style>
-<title>ABG Hub Phase 2</title>
+<title>ABG Hub Phase 5</title>
 <style>
   /* ═══ Shared house style — identical on every phase page ═══════════════════ */
   :root {
@@ -268,195 +268,154 @@
 </head>
 <body>
 <div class="wrap">
-
   <div class="topbar">
     <a class="home" href="../"><span class="glyph">&#9632;</span> <b>ABG Hub</b> <span class="hm-sub">&nbsp;Cloud Migration</span></a>
     <nav class="navarrows" aria-label="Phase navigation">
-      <a href="../cloud-migration-plan/" aria-label="Previous phase: Database Migration to AWS" title="Phase 1 &middot; Database Migration to AWS">&lsaquo;</a>
-      <a href="../aws-deployment/" aria-label="Next phase: Application Deployment to AWS" title="Phase 3 &middot; Application Deployment to AWS">&rsaquo;</a>
+      <a href="../crm-hub-launch/" aria-label="Previous phase: CRM Hub Launch" title="Phase 4 &middot; CRM Hub Launch">&lsaquo;</a>
+      <a href="../website-studio/" aria-label="Next phase: Website Studio" title="Phase 6 &middot; Website Studio">&rsaquo;</a>
     </nav>
   </div>
 
   <header class="masthead">
-    <div class="eyebrow">Cloud Deployment &middot; Phase 2 of 6</div>
-    <h1>Application Migration to PostgreSQL</h1>
+    <div class="eyebrow">Cloud Deployment &middot; Phase 5 of 6</div>
+    <h1>The Website Moves to AWS</h1>
     <p class="lede">
-      Phase&nbsp;1 moved the data to the cloud. Phase&nbsp;2 moves the application that
-      reads it: the membership system now runs on PostgreSQL instead of SQL Server,
-      and starts on any Windows or Mac machine with a single command. Nothing changes
-      for the staff who use it.
+      The public website was built and hosted by an outside website builder, on a domain
+      whose settings lived in an account ABG did not have. Phase&nbsp;5 brings the site, the
+      hosting and the domain under the company's own control, without the site going down
+      and without a single email being lost.
     </p>
     <div class="status-row">
-      <span class="pill done"><span class="dot"></span>Running on PostgreSQL</span>
-      <span class="pill done"><span class="dot"></span>Verified against the cloud database</span>
-      <span class="pill done"><span class="dot"></span>Runs on any machine</span>
+      <span class="pill done"><span class="dot"></span>Hosted in ABG's own AWS</span>
+      <span class="pill done"><span class="dot"></span>Domain under company control</span>
+      <span class="pill done"><span class="dot"></span>Email uninterrupted</span>
     </div>
     <div class="meta">
       <span>Prepared by<b>Rohan Dahal</b></span>
-      <span>Engine<b>PostgreSQL 17.10 &middot; AWS RDS</b></span>
-      <span>Staff downtime<b>None</b></span>
-      <span>Status<b>Complete &middot; for review</b></span>
+      <span>Previously<b>Third-party website builder</b></span>
+      <span>Site downtime<b>None</b></span>
+      <span>Status<b>Complete &middot; verified</b></span>
     </div>
   </header>
 
   <div class="stats">
-    <div class="stat"><div class="v">27,600<small> rows</small></div><div class="k">carried across, 33 tables</div></div>
-    <div class="stat"><div class="v">76</div><div class="k">endpoints, all verified</div></div>
-    <div class="stat"><div class="v">1<small> command</small></div><div class="k">to run, any OS</div></div>
-    <div class="stat"><div class="v">~$14<small>/mo</small></div><div class="k">database hosting</div></div>
+    <div class="stat"><div class="v">0<small> min</small></div><div class="k">site downtime</div></div>
+    <div class="stat"><div class="v">0</div><div class="k">emails lost or delayed</div></div>
+    <div class="stat"><div class="v">3</div><div class="k">mail records protected</div></div>
+    <div class="stat"><div class="v">1<small> owner</small></div><div class="k">ABG, for all of it</div></div>
   </div>
 
   <section class="measure">
-    <h2>What Phase 2 set out to do</h2>
-    <p class="sub">Phase 1 moved the data. Phase 2 moves the application that reads it.</p>
+    <h2>Why this needed doing</h2>
     <p>
-      Until now the software spoke only to SQL Server, the database that runs on the
-      office PC. Phase 2 rewrites the parts of the application that talk to the database
-      so they speak to <strong>PostgreSQL</strong> instead, the open engine chosen for the
-      cloud. The reason is cost: PostgreSQL carries no licence fee, which keeps hosting
-      near <strong>fourteen dollars a month</strong> rather than the several hundred a
-      licensed SQL Server would demand.
+      The website looked like an asset the company owned. It was not. The pages were produced
+      by a third-party builder, the files sat on that supplier's hosting, and the domain's
+      settings were administered from an account nobody at ABG could sign in to.
     </p>
     <p>
-      The important promise is that this is invisible. Every screen, report, and number
-      the staff see is unchanged. What changed sits underneath, in the language the
-      application uses to ask the database questions.
+      In practice that meant the company could not change its own website without going
+      through someone else, could not move it without their cooperation, and had no copy of
+      it if that relationship ended. Phase&nbsp;5 fixes the ownership problem first, because
+      everything in Phase&nbsp;6 depends on it.
     </p>
   </section>
 
   <section>
-    <h2>What changed underneath</h2>
-    <p class="sub">The two databases are close cousins, not twins. Around fifty places assumed SQL Server, and each was translated.</p>
-
-    <h3>Query language</h3>
+    <h2>Taking a faithful copy</h2>
     <div class="measure">
       <p>
-        SQL Server and PostgreSQL phrase the same request differently. Each pattern was
-        translated to its PostgreSQL equivalent and checked against real data.
-      </p>
-    </div>
-    <p class="swipe">Swipe the table sideways to see every column.</p>
-    <div class="scroll">
-      <table>
-        <thead><tr><th>SQL Server</th><th>PostgreSQL</th><th>What it does</th></tr></thead>
-        <tbody>
-          <tr><td><code>TOP n</code></td><td><code>LIMIT n</code></td><td>Take the first n rows</td></tr>
-          <tr><td><code>ISNULL()</code></td><td><code>COALESCE()</code></td><td>Fall back when empty</td></tr>
-          <tr><td><code>GETDATE()</code></td><td><code>now()</code></td><td>Current date and time</td></tr>
-          <tr><td><code>OUTPUT INSERTED</code></td><td><code>RETURNING</code></td><td>Read back a new row</td></tr>
-          <tr><td><code>CONVERT(VARCHAR,&hellip;)</code></td><td><code>to_char(&hellip;)</code></td><td>Format a date</td></tr>
-          <tr><td><code>[Brackets]</code></td><td><code>"Quotes"</code></td><td>Name a column</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="measure">
-      <p style="margin-top:14px;color:var(--ink-3);font-size:14px">
-        A representative sample. The full set also covers date arithmetic, text joining,
-        type casts and boolean flags.
-      </p>
-
-      <h3>Case-insensitive matching, preserved exactly</h3>
-      <p>
-        On the office database, searching for <code>ADMIN</code>, <code>admin</code> or
-        <code>Admin</code> returns the same result, because SQL Server ignores letter case
-        by default. PostgreSQL does not. Left unaddressed, a manager searching by status or
-        name would quietly get fewer results than before, with no error to signal it.
+        There was no export to ask for and no source files to hand over, so the live site was
+        captured directly: every page, every image, every stylesheet, exactly as a visitor
+        receives it. The copy was then published to ABG's own storage and delivered through
+        AWS's global network.
       </p>
       <p>
-        This was fixed at the foundation rather than patched search by search:
-        <strong>39 columns</strong> (the status, role and name fields, among others) now use
-        a case-insensitive column type, so the database itself treats case the way the office
-        always has. It even continues to reject a duplicate <code>Admin</code> next to an
-        existing <code>admin</code>, exactly as before.
-      </p>
-
-      <h3>The spreadsheet sync, rewritten in step</h3>
-      <p>
-        A separate routine keeps the system in step with Google Sheets and talked to SQL
-        Server directly, bypassing the rest of the application. It was ported alongside
-        everything else, so the nightly sync behaves identically on the new engine.
+        The result is identical to what was there before. This was deliberate. The purpose of
+        this phase was to change who owns and controls the site, not how it looks, so there was
+        nothing for anyone to notice or approve.
       </p>
     </div>
-
     <div class="note measure">
-      <span class="lbl">A note on method</span>
-      Rather than reason about what <b>might</b> break, a local copy of PostgreSQL was loaded
-      with the real 27,600 rows and every screen was exercised against it. That turned
-      guesswork into a concrete list of issues to fix, and it is how subtle differences (a
-      search returning too few rows, results sorted in a different order) were caught before
-      the client ever saw them.
-    </div>
-  </section>
-
-  <section>
-    <h2>How it runs now</h2>
-    <p class="sub">The application no longer needs a hand-built machine. It runs the same way on any Windows or Mac computer.</p>
-    <div class="measure">
       <p>
-        Everything the application needs, the database, the interface and the web server,
-        is packaged together with <strong>Docker</strong>. Once Docker Desktop is installed,
-        the whole system starts with one line:
-      </p>
-    </div>
-    <div class="cmd measure"><span class="p">$</span> docker compose up -d</div>
-    <div class="measure">
-      <p>
-        The database builds its own structure on first start, the interface appears in a
-        browser, and there is nothing to configure by hand. A short, illustrated guide covers
-        installing Docker Desktop and running these steps on both Windows and Mac. A second
-        command loads a live copy of the real data from the cloud whenever a working set is
-        needed.
+        <b>An earlier attempt was abandoned on purpose.</b> The site was first rebuilt from
+        scratch on a modern framework. It kept drifting from the original in small visual ways
+        and would have meant signing off a redesign nobody had asked for. That work was set
+        aside and the faithful copy taken instead. The right call was the less impressive one.
       </p>
     </div>
   </section>
 
   <section>
-    <h2>Verified, not assumed</h2>
-    <p class="sub">Phase 2 was signed off against a real cloud database, not a developer's guess. Each of these was checked directly.</p>
+    <h2>Moving the domain without breaking email</h2>
+    <p class="sub">The riskiest part of the whole project, and the one with the least room for error.</p>
+    <div class="measure">
+      <p>
+        Moving a domain moves everything attached to it, and what is attached to this one is
+        the company's email. Getting the website right but the mail wrong would have been far
+        worse than leaving things as they were.
+      </p>
+      <p>
+        So the existing settings were read directly from the authoritative servers first and
+        written down before anything was touched. Three records mattered: the two that route
+        incoming mail through the company's filtering service, and the one that proves
+        ownership of the mailboxes to Microsoft. Every other record was confirmed as either a
+        convenience or unused.
+      </p>
+    </div>
     <ul class="checks">
-      <li><span class="ck">&#10003;</span><span class="tx"><b>All 76 read endpoints</b> return correctly against PostgreSQL on AWS RDS.</span></li>
-      <li><span class="ck">&#10003;</span><span class="tx"><b>The full database structure</b> (33 tables) builds itself on a fresh start.</span></li>
-      <li><span class="ck">&#10003;</span><span class="tx"><b>Reports keep their exact spreadsheet headings</b> and their <code>MM/DD/YYYY</code> dates.</span></li>
-      <li><span class="ck">&#10003;</span><span class="tx"><b>Every store still reconciles:</b> 1,094 and 1,832 vendor rows account for all 2,926 stores.</span></li>
-      <li><span class="ck">&#10003;</span><span class="tx"><b>Case-insensitive search</b> returns what the office expects, confirmed against the old behaviour.</span></li>
-      <li><span class="ck">&#10003;</span><span class="tx"><b>A clean start on a bare machine</b> was rehearsed end to end: database, interface and web app all came up from nothing.</span></li>
+      <li><span class="ck">&#10003;</span><span class="tx"><b>The full set of existing records was captured</b> before the move, so the previous state could be restored exactly.</span></li>
+      <li><span class="ck">&#10003;</span><span class="tx"><b>Mail filtering was preserved.</b> The default setup offered during the move would have replaced it, which was checked for and corrected.</span></li>
+      <li><span class="ck">&#10003;</span><span class="tx"><b>The old provider was left running</b> until the new setup was confirmed, so reverting was a single change rather than a rebuild.</span></li>
+      <li><span class="ck">&#10003;</span><span class="tx"><b>The result was verified independently</b> by querying the public record afterwards rather than trusting the control panel.</span></li>
     </ul>
-    <h3>A safety net for what comes next</h3>
     <div class="measure">
       <p>
-        A new suite of <strong>94 automated tests</strong> now runs every database statement
-        against a real PostgreSQL server, on every change. Its job is to catch any SQL Server
-        assumption that slips back in before it can reach the client. It was proven to work by
-        deliberately reintroducing an old pattern and watching the tests fail.
+        Mailbox sign-in was never at risk: that authenticates against Microsoft directly and no
+        domain change can affect it. Only delivery depended on the records, and delivery was
+        never interrupted.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Search visibility carried across</h2>
+    <div class="measure">
+      <p>
+        A move like this can quietly cost a company its search rankings if the new site answers
+        differently from the old one. The copy keeps the original page titles, descriptions and
+        addresses, so every link that worked before still works, and search engines see the same
+        content at the same addresses.
+      </p>
+      <p>
+        The site map is kept up to date automatically when a page changes, and the review copy
+        used before publishing is marked so that search engines ignore it and it can never
+        compete with the real site.
       </p>
     </div>
   </section>
 
   <section class="measure">
-    <h2>What Phase 2 left for later</h2>
-    <p class="sub">One item was deliberately staged for the phase that followed.</p>
+    <h2>What Phase 5 left for later</h2>
     <p>
-      At the end of this phase the application was ready to run in the cloud, but it was
-      still started by hand and still kept uploaded files (photos, signatures, PDFs) on local
-      disk. <strong>Phase 3</strong> gave it a permanent home on AWS, moved those files to
-      cloud storage, and replaced the last few things that only a Windows office PC could do,
-      chiefly the weekly report emails. The office PC was left untouched as a fallback for a
-      full working cycle before it was retired.
+      With the site on ABG's own hosting, changing it still meant asking a developer. That is
+      what the final phase removed.
     </p>
     <p>
-      Every phase stayed reversible until that last step, so at no point before the cutover
-      could the office system not simply carry on.
+      One item remains outstanding and is not ABG's to close: the delivery network in front of
+      the website still runs in a supplier account, because AWS had not cleared the company's
+      own account for that service. Moving it across is a documented, contained change, waiting
+      on AWS rather than on work.
     </p>
   </section>
 
   <div class="pager">
-    <a class="prev" href="../cloud-migration-plan/">
+    <a class="prev" href="../crm-hub-launch/">
       <span class="dir">&larr; Previous phase</span>
-      <span class="lbl2">Database Migration to AWS</span>
+      <span class="lbl2">CRM Hub Launch</span>
     </a>
-    <a class="next" href="../aws-deployment/">
+    <a class="next" href="../website-studio/">
       <span class="dir">Next phase &rarr;</span>
-      <span class="lbl2">Application Deployment to AWS</span>
+      <span class="lbl2">Website Studio</span>
     </a>
   </div>
 

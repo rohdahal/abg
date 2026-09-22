@@ -223,15 +223,54 @@
     body { padding:0 18px 60px; font-size:16px; }
     .specs { grid-template-columns:minmax(0,1fr); }
     ol.phases > li { grid-template-columns:32px 1fr; gap:12px; }
+    header.masthead { padding:26px 0 30px; margin-bottom:42px; }
+    section { margin-bottom:46px; }
+    .lede { font-size:17.5px; }
+    .panel { padding:20px; }
+
+    /* Thumb-sized navigation. */
+    .topbar { padding:10px 0 8px; }
+    .topbar .home { padding:10px 0; }
+    .navarrows { gap:8px; }
+    .navarrows a, .navarrows span { width:40px; height:40px; font-size:20px; }
+
+    .meta { display:grid; grid-template-columns:1fr 1fr; gap:16px 18px; }
+    .pill { font-size:12px; padding:7px 13px; }
+    .tag { font-size:11px; margin-left:6px; }
+    .stat { padding:16px; }
+    table { min-width:480px; font-size:14px; }
+    th, td { padding:11px 13px; }
+    .cmd { font-size:13px; padding:12px 13px; }
+    .checks li { gap:11px; }
+
+    .pager { margin-top:44px; gap:10px; }
+    .pager a { flex:1 1 100%; padding:15px 16px; }
+    .pager .next { text-align:left; }
+  }
+  @media (max-width:430px) { .topbar .home .hm-sub { display:none; } }
+  .swipe { display:none; }
+  @media (max-width:560px) {
+    .swipe {
+      display:block; font-family:var(--font-mono); font-size:11.5px;
+      letter-spacing:.02em; color:var(--ink-3); margin-top:18px;
+    }
+    .swipe + .scroll { margin-top:8px; }
   }
   @media (prefers-reduced-motion:reduce) { * { animation:none !important; transition:none !important; } }
+  @media print {
+    body { background:#fff; color:#000; padding:0; font-size:11pt; }
+    .topbar, .pager, .swipe { display:none; }
+    .scroll { overflow:visible; border:0; }
+    table { min-width:0; }
+    section { page-break-inside:avoid; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <div class="topbar">
-    <a class="home" href="../"><span class="glyph">&#9632;</span> <b>ABG Hub</b> &nbsp;Cloud Migration</a>
+    <a class="home" href="../"><span class="glyph">&#9632;</span> <b>ABG Hub</b> <span class="hm-sub">&nbsp;Cloud Migration</span></a>
     <nav class="navarrows" aria-label="Phase navigation">
       <span class="off" aria-hidden="true">&lsaquo;</span>
       <a href="../application-postgres/" aria-label="Next phase: Application to PostgreSQL" title="Phase 2 &middot; Application to PostgreSQL">&rsaquo;</a>
@@ -239,40 +278,40 @@
   </div>
 
   <header class="masthead">
-    <div class="eyebrow">Cloud Deployment &middot; Phase 1 of 4</div>
+    <div class="eyebrow">Cloud Deployment &middot; Phase 1 of 6</div>
     <h1>Database Migration to AWS</h1>
     <p class="lede">
-      Moving ABG Hub from a database running on a single office PC to a managed
-      cloud database. This is the foundation the hosted application will sit on,
-      and the only phase that touches live business data.
+      ABG Hub's database moved from a single office PC to a managed cloud database.
+      This was the foundation everything else was built on, and the only phase that
+      touched live business data.
     </p>
     <div class="status-row">
       <span class="pill done"><span class="dot"></span>Cloud database live</span>
       <span class="pill done"><span class="dot"></span>Schema deployed</span>
       <span class="pill done"><span class="dot"></span>Copy tested end to end</span>
-      <span class="pill pending">Awaiting office run</span>
+      <span class="pill done"><span class="dot"></span>Run in the office and verified</span>
     </div>
     <div class="meta">
       <span>Prepared by<b>Rohan Dahal</b></span>
       <span>System<b>ABG Hub 4.0</b></span>
-      <span>Target<b>PostgreSQL 17.10 &middot; AWS RDS</b></span>
+      <span>Database<b>PostgreSQL 17.10 &middot; AWS RDS</b></span>
       <span>Running cost<b>~$14 / month</b></span>
     </div>
   </header>
 
   <section class="measure">
-    <h2>Why the database goes first</h2>
-    <p class="sub">Nothing else in the deployment can be built until the data has somewhere to live.</p>
+    <h2>Why the database went first</h2>
+    <p class="sub">Nothing else could be built until the data had somewhere to live.</p>
     <p>
-      ABG Hub currently keeps everything on one machine in the office: the database,
-      the application, and the uploaded files. That machine is the single point of
-      failure for the entire business system. If it is off, stolen, or its disk
-      fails, the membership records go with it.
+      ABG Hub kept everything on one machine in the office: the database, the
+      application, and the uploaded files. That machine was the single point of
+      failure for the entire business system. If it was off, stolen, or its disk
+      failed, the membership records went with it.
     </p>
     <p>
-      Moving the database out first means the records are backed up and reachable
-      from anywhere before any other change is made. It is also the only phase that
-      moves real data, so it is worth doing carefully and on its own, rather than
+      Moving the database out first meant the records were backed up and reachable
+      from anywhere before any other change was made. It was also the only phase
+      that moved real data, so it was done carefully and on its own, rather than
       bundled into a larger cutover.
     </p>
   </section>
@@ -282,12 +321,13 @@
     <p class="sub">Same capability, without the licence.</p>
     <div class="measure">
       <p>
-        The office system runs SQL Server. Keeping SQL Server in the cloud is
+        The office system ran SQL Server. Keeping SQL Server in the cloud was
         possible but expensive: on AWS the licence is bundled into the hourly rate
-        and cannot be avoided. PostgreSQL is the closest equivalent with no licence
+        and cannot be avoided. PostgreSQL was the closest equivalent with no licence
         cost at all, and no ceiling on database size.
       </p>
     </div>
+    <p class="swipe">Swipe the table sideways to see every column.</p>
     <div class="scroll">
       <table>
         <thead>
@@ -302,11 +342,11 @@
           <tr>
             <td>SQL Server Express on RDS</td>
             <td class="num">~$40</td><td class="num">10 GB</td>
-            <td>Hard size cap; next tier is a large jump</td>
+            <td>Hard size cap, and the next tier is a large jump</td>
           </tr>
           <tr>
             <td>SQL Server Standard on RDS</td>
-            <td class="num">~$400&ndash;600</td><td class="num">None</td>
+            <td class="num">~$400 to 600</td><td class="num">None</td>
             <td>Licence is the bulk of the cost</td>
           </tr>
         </tbody>
@@ -314,16 +354,16 @@
     </div>
     <div class="measure">
       <p style="margin-top:18px">
-        The trade-off is that application code written for SQL Server needs
-        translating. That work is scoped and scheduled as Phase&nbsp;2. It does not
-        block the data move, because the office system keeps running on SQL Server
-        until the new application is ready.
+        The trade-off was that application code written for SQL Server needed
+        translating. That work became Phase&nbsp;2. It did not block the data move,
+        because the office system kept running on SQL Server until the new
+        application was ready.
       </p>
     </div>
   </section>
 
   <section>
-    <h2>What is already in place</h2>
+    <h2>What was put in place</h2>
     <p class="sub">Provisioned, deployed and verified before any office involvement.</p>
     <div class="panel">
       <dl class="specs">
@@ -334,11 +374,11 @@
         <div class="spec"><dt>Region</dt><dd>us-east-1<small>N. Virginia</small></dd></div>
         <div class="spec"><dt>Encryption</dt><dd>At rest and in transit</dd></div>
         <div class="spec"><dt>Protection</dt><dd>Deletion protection on</dd></div>
-        <div class="spec"><dt>Backups</dt><dd>Daily, 1 day retained<small>extends to 7 once billing plan is upgraded</small></dd></div>
+        <div class="spec"><dt>Backups</dt><dd>Daily, 1 day retained<small>extends to 7 with a billing plan upgrade</small></dd></div>
       </dl>
     </div>
 
-    <h3>Translation work already completed</h3>
+    <h3>Translation work done first</h3>
     <div class="measure">
       <p>
         The schema was rebuilt for PostgreSQL and checked table by table against the
@@ -347,14 +387,14 @@
       <ul>
         <li>
           <strong>Text matching.</strong> SQL Server treats <code>ADMIN@abg.com</code> and
-          <code>admin@abg.com</code> as the same value; PostgreSQL does not. Eighteen
+          <code>admin@abg.com</code> as the same value. PostgreSQL does not. Eighteen
           columns (every email address, ABG number, state code and vendor name) were
-          given case-insensitive types so that logging in and duplicate-checking behave
-          exactly as they do today.
+          given types that ignore capitals, so that logging in and duplicate-checking
+          behaved exactly as they had before.
         </li>
         <li>
           <strong>Two missing tables.</strong> Neither the existing setup script nor the
-          application's own model was a complete description of the schema; each was
+          application's own model was a complete description of the schema. Each was
           missing a table the other had. Both are now present in the cloud database.
         </li>
       </ul>
@@ -362,104 +402,76 @@
   </section>
 
   <section>
-    <h2>How the migration runs</h2>
-    <p class="sub">Four steps on the day. Only one of them happens in the office.</p>
+    <h2>How the migration ran</h2>
+    <p class="sub">Four steps on the day. Only one of them happened in the office.</p>
     <ol class="phases">
       <li><div>
         <div class="phase-title">Update the office project folder</div>
         <div class="phase-who">Office &middot; 1 minute</div>
-        <div class="phase-body">Pulls down the migration tooling. No change to the application itself.</div>
+        <div class="phase-body">Pulled down the migration tooling. No change to the application itself.</div>
       </div></li>
       <li><div>
         <div class="phase-title">Connection test</div>
-        <div class="phase-who">Office &middot; 1 minute &middot; changes nothing</div>
-        <div class="phase-body">Confirms the office database is readable, the cloud database is reachable, the two schemas agree, and the data is consistent. Nothing is written in this step, so there is nothing to undo if it fails.</div>
+        <div class="phase-who">Office &middot; 1 minute &middot; changed nothing</div>
+        <div class="phase-body">Confirmed the office database was readable, the cloud database reachable, the two schemas in agreement, and the data consistent. Nothing was written in this step, so there was nothing to undo if it failed.</div>
       </div></li>
       <li><div>
         <div class="phase-title">Data copy</div>
         <div class="phase-who">Office &middot; minutes, depending on connection speed</div>
-        <div class="phase-body">Requires the ABG Hub window to be closed first, so that no record changes mid-copy. The copy then verifies itself, checking every table's row count and every relationship between tables, before reporting success.</div>
+        <div class="phase-body">Required the ABG Hub window to be closed first, so that no record changed mid-copy. The copy then verified itself, checking every table's row count and every relationship between tables, before reporting success.</div>
       </div></li>
       <li><div>
         <div class="phase-title">Verification</div>
         <div class="phase-who">Remote &middot; no office involvement</div>
-        <div class="phase-body">Each run records its own outcome inside the cloud database, so the result can be confirmed independently rather than relying on someone reading a screen.</div>
+        <div class="phase-body">Each run recorded its own outcome inside the cloud database, so the result was confirmed independently rather than by someone reading a screen.</div>
       </div></li>
     </ol>
   </section>
 
   <section>
     <h2>Safeguards</h2>
-    <p class="sub">The office system is the system of record until the cutover, and is treated as such.</p>
+    <p class="sub">The office system stayed the system of record until the cutover, and was treated as such.</p>
     <div class="callout measure">
-      <h3>Nothing on the office machine is changed</h3>
-      <p>Every instruction sent to the office database is a read. There is no delete, update, insert or clear operation anywhere in the process, on any path, including error paths. No files are moved and nothing is cleaned up afterwards.</p>
+      <h3>Nothing on the office machine was changed</h3>
+      <p>Every instruction sent to the office database was a read. There was no delete, update, insert or clear operation anywhere in the process, on any path, including error paths. No files were moved and nothing was cleaned up afterwards.</p>
     </div>
     <div class="callout measure">
       <h3>Safe to repeat</h3>
-      <p>Each run replaces the cloud copy in full rather than adding to it, so an interrupted or failed attempt is fixed by simply running it again. There is no half-finished state to reason about.</p>
+      <p>Each run replaced the cloud copy in full rather than adding to it, so an interrupted or failed attempt was fixed by running it again. There was no half-finished state to reason about.</p>
     </div>
     <div class="callout measure">
-      <h3>It stops rather than guesses</h3>
-      <p>If the office database appears empty, if records are found pointing at records that no longer exist, or if the two schemas disagree in a way that would lose data, the run halts before writing anything and reports what it found.</p>
+      <h3>It stopped rather than guessed</h3>
+      <p>If the office database had appeared empty, if records had been found pointing at records that no longer existed, or if the two schemas had disagreed in a way that would lose data, the run would have halted before writing anything and reported what it found.</p>
     </div>
     <div class="callout measure">
-      <h3>Access is temporary</h3>
-      <p>The office machine connects using a credential created solely for this copy, limited to this one database. It is revoked once the migration is confirmed, after which it grants nothing.</p>
+      <h3>Access was temporary</h3>
+      <p>The office machine connected using a credential created solely for this copy and limited to this one database, so it granted nothing beyond what the copy needed.</p>
     </div>
   </section>
 
   <section class="measure">
-    <h2>Not included in this phase</h2>
+    <h2>What this phase left out</h2>
     <p class="sub">Deliberately deferred, and tracked.</p>
     <ul>
-      <li><strong>Uploaded files.</strong> Visit photographs, signature images and ticket attachments are stored as files on the office machine rather than inside the database, so they are not part of this copy. They move in Phase&nbsp;3, when the application itself moves and needs somewhere to read them from.</li>
-      <li><strong>The application.</strong> It continues to run in the office, against the office database, unchanged. Staff see no difference during this phase.</li>
-      <li><strong>Report emailing.</strong> The weekly report feature drives Outlook on the office desktop directly. That cannot work on a cloud server and needs replacing before the application moves.</li>
+      <li><strong>Uploaded files.</strong> Visit photographs, signature images and ticket attachments were stored as files on the office machine rather than inside the database, so they were not part of this copy. They moved in Phase&nbsp;3, when the application itself moved and needed somewhere to read them from.</li>
+      <li><strong>The application.</strong> It carried on running in the office, against the office database, unchanged. Staff saw no difference during this phase.</li>
+      <li><strong>Report emailing.</strong> The weekly report feature drove Outlook on the office desktop directly. That could not work on a cloud server, and was replaced in Phase&nbsp;4.</li>
     </ul>
   </section>
 
-  <section>
-    <h2>Road to full deployment</h2>
-    <p class="sub">This phase is the foundation; three remain.</p>
-    <ol class="phases">
-      <li><div>
-        <div class="phase-title">Database Migration to AWS</div>
-        <div class="phase-who">This phase</div>
-        <div class="phase-body">Cloud database live, tested, awaiting the office run.</div>
-      </div></li>
-      <li><div>
-        <div class="phase-title">Application Migration to PostgreSQL</div>
-        <div class="phase-who">Complete &middot; nothing visible to staff</div>
-        <div class="phase-body">Around fifty places in the application expected the old database and were reworked, then verified against a copy of the real data. <a href="../application-postgres/">See the Phase&nbsp;2 detail &rarr;</a></div>
-      </div></li>
-      <li><div>
-        <div class="phase-title">Application Deployment to AWS</div>
-        <div class="phase-who">Scoping</div>
-        <div class="phase-body">The application moves off the office PC onto a server, reached through a proper web address with a security certificate. Uploaded photographs and signatures move to cloud storage, the weekly report emails move off desktop Outlook, and the overnight sync job moves onto the server. Runs alongside the office system, not instead of it.</div>
-      </div></li>
-      <li><div>
-        <div class="phase-title">Production Cutover</div>
-        <div class="phase-who">Scheduled with the office</div>
-        <div class="phase-body">A final data copy, then staff switch to the hosted application and the office PC stops being the system of record. It stays available, untouched, as a fallback until the new system has proven itself over a full working cycle.</div>
-      </div></li>
-    </ol>
-  </section>
 
   <section class="measure">
-    <h2>Open items</h2>
+    <h2>Still worth tightening</h2>
     <ul>
-      <li><strong>Backup retention.</strong> Currently one day, which is the cap on the account's present billing plan. Upgrading raises it to seven, which is the minimum this deserves once it holds live records rather than test data.</li>
-      <li><strong>Network access.</strong> Access is deliberately broad for the migration window, so that the office can connect without its network details being known in advance. It gets locked to the office address once the first successful run identifies it, and the temporary credential is revoked at the same time.</li>
-      <li><strong>Untested on Windows.</strong> The tooling has been proven end to end, but on a Mac. The office machine is the first Windows run.</li>
+      <li><strong>Backup retention.</strong> Set to one day, which was the cap on the account's billing plan at the time. Upgrading the plan raises it to seven, which is worth doing now that it holds live records rather than test data.</li>
+      <li><strong>Network access.</strong> Access was left deliberately broad for the migration window, so the office could connect without its network details being known in advance. Now that the run has identified that address, it is worth locking access to it and revoking the temporary migration credential.</li>
     </ul>
   </section>
 
   <p class="footnote">
-    The copy has been rehearsed end to end against the live cloud database at full
-    scale, including attachments, with row counts and relationships checked afterwards.
-    Duration in the office will depend on the size of the real dataset and the speed of
-    the office internet connection.
+    The copy was rehearsed end to end against the live cloud database at full scale,
+    including attachments, with row counts and relationships checked afterwards. It was
+    then run on the office Windows machine and has been in use since, without problems.
   </p>
 
   <div class="pager">
